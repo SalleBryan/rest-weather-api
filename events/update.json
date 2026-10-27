@@ -1,0 +1,12 @@
+{
+  "httpMethod": "PUT",
+  "path": "/weather/REPLACE-WITH-AN-ID",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "pathParameters": {
+    "id": "REPLACE-WITH-AN-ID"
+  },
+  "body": "{\"weather\": \"HOT\", \"town\": \"Douala\"}",
+  "isBase64Encoded": false
+}

@@ -1,0 +1,12 @@
+{
+  "httpMethod": "DELETE",
+  "path": "/weather/REPLACE-WITH-AN-ID",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "pathParameters": {
+    "id": "REPLACE-WITH-AN-ID"
+  },
+  "body": null,
+  "isBase64Encoded": false
+}

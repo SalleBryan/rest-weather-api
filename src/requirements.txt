@@ -1,0 +1,2 @@
+# boto3 and botocore are already included in the AWS Lambda Python runtime,
+# so the functions have no extra dependencies to package.

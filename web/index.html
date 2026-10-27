@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Weather Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6fb; --surface: #ffffff; --surface-2: #eef1f8; --border: #dde3ee;
+    --text: #0f172a; --muted: #5b6478; --accent: #ff9900; --accent-ink: #1a1200;
+    --blue: #2563eb; --green: #059669; --red: #dc2626; --violet: #7c3aed;
+    --shadow: 0 1px 2px rgba(15,23,42,.06), 0 8px 24px rgba(15,23,42,.06);
+    --radius: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0b1020; --surface: #121a2e; --surface-2: #19223a; --border: #26304a;
+      --text: #e8ecf6; --muted: #98a2b8; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+      --blue: #60a5fa; --green: #34d399; --red: #f87171; --violet: #a78bfa;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0b1020; --surface: #121a2e; --surface-2: #19223a; --border: #26304a;
+    --text: #e8ecf6; --muted: #98a2b8; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    --blue: #60a5fa; --green: #34d399; --red: #f87171; --violet: #a78bfa;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 Inter, system-ui, sans-serif; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 24px 16px 48px; }
+  header { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .brand { display: flex; gap: 12px; align-items: center; }
+  .logo { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, var(--accent), #ffb84d); display: grid; place-items: center; font-size: 24px; box-shadow: var(--shadow); }
+  h1 { font-size: 22px; margin: 0; letter-spacing: -.02em; }
+  .sub { color: var(--muted); font-size: 13px; }
+  .conn { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 6px 6px 6px 14px; box-shadow: var(--shadow); max-width: 100%; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); flex: none; }
+  .dot.ok { background: var(--green); box-shadow: 0 0 0 4px color-mix(in srgb, var(--green) 20%, transparent); }
+  .dot.err { background: var(--red); }
+  .conn input { border: 0; background: transparent; color: var(--text); font: 13px 'JetBrains Mono', monospace; width: min(360px, 52vw); outline: none; }
+  .seg { display: inline-flex; background: var(--surface-2); border-radius: 999px; padding: 3px; }
+  .seg button { border: 0; background: transparent; color: var(--muted); font: 600 12px Inter; padding: 6px 12px; border-radius: 999px; cursor: pointer; }
+  .seg button.on { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+
+  .grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; }
+  .card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 14px; display: flex; justify-content: space-between; align-items: center; }
+  label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 6px; }
+  input[type=text] { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); font: inherit; outline: none; }
+  input[type=text]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { border: 1px solid var(--border); background: var(--surface-2); color: var(--text); border-radius: 999px; padding: 6px 10px; font: 500 13px Inter; cursor: pointer; }
+  .chip.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 700; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 10px; padding: 10px 14px; font: 700 14px Inter; cursor: pointer; }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); width: 100%; margin-top: 16px; }
+  .btn.ghost { background: var(--surface-2); color: var(--text); }
+  .btn.small { padding: 6px 10px; font-size: 12px; border-radius: 8px; }
+  .btn.danger { color: var(--red); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .row { display: flex; gap: 8px; }
+  .row input { flex: 1; }
+  .msg { font-size: 13px; margin-top: 10px; min-height: 20px; }
+  .msg.err { color: var(--red); } .msg.ok { color: var(--green); }
+
+  .items { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  .w { position: relative; border: 1px solid var(--border); border-radius: 12px; padding: 14px; background: var(--surface); overflow: hidden; }
+  .w .icon { font-size: 34px; line-height: 1; }
+  .w .town { font-weight: 800; font-size: 17px; margin-top: 8px; letter-spacing: -.01em; }
+  .w .cond { color: var(--muted); font-weight: 600; }
+  .w .meta { font: 11px 'JetBrains Mono', monospace; color: var(--muted); margin-top: 10px; white-space: pre-line; }
+  .w .actions { display: flex; gap: 6px; margin-top: 12px; }
+  .w.flash { animation: flash 1.2s ease; }
+  @keyframes flash { 0% { box-shadow: 0 0 0 0 var(--accent); } 30% { box-shadow: 0 0 0 4px var(--accent); } 100% { box-shadow: 0 0 0 0 transparent; } }
+  .empty { text-align: center; padding: 40px 10px; color: var(--muted); border: 1px dashed var(--border); border-radius: 12px; }
+
+  .flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; align-items: stretch; margin-bottom: 14px; }
+  @media (max-width: 600px) { .flow { grid-template-columns: repeat(2, 1fr); } }
+  .node { border: 1px solid var(--border); border-radius: 12px; padding: 10px; text-align: center; background: var(--surface-2); transition: all .25s; position: relative; }
+  .node b { display: block; font-size: 13px; }
+  .node span { font: 11px 'JetBrains Mono', monospace; color: var(--muted); word-break: break-all; }
+  .node.lit { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--surface)); transform: translateY(-2px); }
+  .node .em { font-size: 20px; }
+  .log { font: 12px/1.6 'JetBrains Mono', monospace; max-height: 230px; overflow: auto; background: var(--surface-2); border-radius: 10px; padding: 8px 10px; }
+  .log div { display: grid; grid-template-columns: 58px 1fr 44px 56px; gap: 8px; white-space: nowrap; }
+  .log .path { overflow: hidden; text-overflow: ellipsis; }
+  .s2 { color: var(--green); } .s4 { color: #d97706; } .s5 { color: var(--red); }
+  .m-GET { color: var(--blue); } .m-POST { color: var(--green); } .m-PUT { color: #d97706; } .m-DELETE { color: var(--red); }
+  .stack { display: grid; gap: 20px; }
+  footer { color: var(--muted); font-size: 12px; text-align: center; margin-top: 28px; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--surface-2); padding: 1px 5px; border-radius: 5px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo">⛅</div>
+      <div>
+        <h1>Weather Board</h1>
+        <div class="sub">A serverless CRUDL API · AWS SAM · API Gateway · Lambda · DynamoDB</div>
+      </div>
+    </div>
+    <div class="conn" title="Where requests are sent">
+      <span class="dot" id="dot"></span>
+      <div class="seg" role="tablist">
+        <button id="modeDemo" class="on">Demo</button>
+        <button id="modeLive">Live API</button>
+      </div>
+      <input id="apiUrl" type="url" placeholder="https://xxxx.execute-api.region.amazonaws.com/dev" spellcheck="false" aria-label="API base URL">
+    </div>
+  </header>
+
+  <div class="grid">
+    <div class="stack">
+      <section class="card">
+        <h2 id="formTitle">Add a reading <span id="cancelEdit" hidden><button class="btn small ghost" id="cancelBtn">Cancel</button></span></h2>
+        <label for="town">Town</label>
+        <input type="text" id="town" list="towns" placeholder="e.g. Buea" maxlength="60">
+        <datalist id="towns"></datalist>
+        <label>Weather</label>
+        <div class="chips" id="chips"></div>
+        <button class="btn primary" id="submit">Create · POST /create-weather</button>
+        <div class="msg" id="formMsg"></div>
+      </section>
+
+      <section class="card">
+        <h2>Find by id</h2>
+        <div class="row">
+          <input type="text" id="lookupId" placeholder="paste an id" spellcheck="false">
+          <button class="btn ghost" id="lookupBtn">GET</button>
+        </div>
+        <div class="msg" id="lookupMsg"></div>
+      </section>
+    </div>
+
+    <div class="stack">
+      <section class="card">
+        <h2>Under the hood <span class="sub" id="lastCall">make a request to light up the path</span></h2>
+        <div class="flow">
+          <div class="node" id="nClient"><div class="em">🖥️</div><b>Client</b><span id="nClientTxt">this page</span></div>
+          <div class="node" id="nApi"><div class="em">🚪</div><b>API Gateway</b><span id="nApiTxt">WeatherApi · dev</span></div>
+          <div class="node" id="nFn"><div class="em">λ</div><b>Lambda</b><span id="nFnTxt">—</span></div>
+          <div class="node" id="nDb"><div class="em">🗄️</div><b>DynamoDB</b><span id="nDbTxt">WeatherTable</span></div>
+        </div>
+        <div class="log" id="log"><div style="color:var(--muted)">request log is empty</div></div>
+      </section>
+
+      <section class="card">
+        <h2>Readings <span><button class="btn small ghost" id="refresh">↻ GET /weathers</button></span></h2>
+        <div class="items" id="items"></div>
+      </section>
+    </div>
+  </div>
+
+  <footer>
+    Built while learning <b>Building a Serverless REST API With AWS SAM and Python</b> on Educloud Academy.
+    Demo mode runs a copy of the API inside your browser. Switch to <b>Live API</b> and paste the <code>WeatherApiUrl</code> from <code>sam deploy</code>,
+    or run <code>uv run python scripts/local_api.py</code> and use <code>http://localhost:3000/dev</code>.
+  </footer>
+</div>
+
+<script>
+const WEATHERS = [
+  ['Sunny', '☀️'], ['Cloudy', '☁️'], ['Rainy', '🌧️'], ['Stormy', '⛈️'],
+  ['Cold', '🥶'], ['HOT', '🔥'], ['Windy', '🌬️'], ['Foggy', '🌫️'], ['Drizzle', '🌦️'],
+];
+const TOWNS = ['Buea', 'Douala', 'Yaoundé', 'Limbe', 'Bamenda', 'Kribi', 'Bafoussam', 'Garoua', 'Maroua', 'Ngaoundéré', 'Bertoua', 'Ebolowa', 'Kumba', 'Dschang'];
+const ROUTE_TO_FN = {
+  'POST /create-weather': ['CreateWeatherLambda', 'Write'],
+  'GET /weathers': ['GetAllWeatherLambda', 'Read · scan'],
+  'GET /weather/{id}': ['GetWeatherLambda', 'Read · get_item'],
+  'PUT /weather/{id}': ['UpdateWeatherLambda', 'Write · update_item'],
+  'DELETE /weather/{id}': ['DeleteWeatherLambda', 'Write · delete_item'],
+};
+const $ = id => document.getElementById(id);
+const store = {
+  get(k, d) { try { return localStorage.getItem(k) ?? d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+};
+
+// ── Demo mode: the same five handlers, re-implemented in the browser ─────────
+const demoTable = new Map();
+function seedDemo() {
+  const now = Date.now();
+  [['Buea', 'Rainy'], ['Douala', 'HOT'], ['Yaoundé', 'Cloudy'], ['Limbe', 'Sunny']].forEach(([town, weather], i) => {
+    const t = new Date(now - (i + 1) * 3600e3).toISOString().slice(0, 19) + '+00:00';
+    const id = crypto.randomUUID();
+    demoTable.set(id, { id, weather, town, createdAt: t, updatedAt: t });
+  });
+}
+function validate(body) {
+  let data; try { data = JSON.parse(body || ''); } catch { return [null, body ? 'Request body must be valid JSON' : 'Request body is required']; }
+  for (const f of ['weather', 'town']) {
+    if (typeof data[f] !== 'string' || !data[f].trim()) return [null, `'${f}' is required and must be a non-empty string`];
+    if (data[f].trim().length > 60) return [null, `'${f}' must be at most 60 characters`];
+  }
+  return [{ weather: data.weather.trim(), town: data.town.trim() }, null];
+}
+async function demoFetch(method, path, body) {
+  await new Promise(r => setTimeout(r, 60 + Math.random() * 120));
+  const stamp = () => new Date().toISOString().slice(0, 19) + '+00:00';
+  const m = path.match(/^\/weather\/([^/]+)$/); const id = m && decodeURIComponent(m[1]);
+  if (method === 'POST' && path === '/create-weather') {
+    const [d, err] = validate(body); if (err) return [400, { message: err }];
+    const item = { id: crypto.randomUUID(), ...d, createdAt: stamp(), updatedAt: stamp() };
+    demoTable.set(item.id, item); return [201, { message: 'Weather successfully created!', item }];
+  }
+  if (method === 'GET' && path === '/weathers') return [200, [...demoTable.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt))];
+  if (id && method === 'GET') return demoTable.has(id) ? [200, demoTable.get(id)] : [404, { message: `Weather item ${id} not found` }];
+  if (id && method === 'PUT') {
+    if (!demoTable.has(id)) return [404, { message: `Weather item ${id} not found` }];
+    const [d, err] = validate(body); if (err) return [400, { message: err }];
+    const item = { ...demoTable.get(id), ...d, updatedAt: stamp() }; demoTable.set(id, item); return [200, item];
+  }
+  if (id && method === 'DELETE') {
+    if (!demoTable.has(id)) return [404, { message: `Weather item ${id} not found` }];
+    const item = demoTable.get(id); demoTable.delete(id); return [200, { message: 'Weather item deleted successfully', item }];
+  }
+  return [403, { message: 'Missing Authentication Token' }];
+}
+
+// ── Talking to the API (demo or live) ────────────────────────────────────────
+let mode = store.get('wb-mode', 'demo');
+async function api(method, path, payload) {
+  const body = payload === undefined ? undefined : JSON.stringify(payload);
+  const route = `${method} ${path.replace(/^\/weather\/[^/]+$/, '/weather/{id}')}`;
+  const started = performance.now();
+  let status, data;
+  try {
+    if (mode === 'demo') {
+      [status, data] = await demoFetch(method, path, body);
+    } else {
+      const base = $('apiUrl').value.trim().replace(/\/+$/, '');
+      if (!base) throw new Error('Paste your API URL first');
+      const res = await fetch(base + path, { method, body, headers: body ? { 'Content-Type': 'application/json' } : {} });
+      status = res.status; data = await res.json().catch(() => null);
+    }
+    setDot(status < 500 ? 'ok' : 'err');
+  } catch (e) {
+    setDot('err'); status = 0; data = { message: e.message.includes('fetch') ? 'Network/CORS error: is the URL right and the API deployed?' : e.message };
+  }
+  const ms = Math.round(performance.now() - started);
+  logCall(method, path, status, ms, route);
+  return [status, data];
+}
+
+function setDot(state) { $('dot').className = 'dot ' + state; }
+function logCall(method, path, status, ms, route) {
+  const log = $('log'); if (log.dataset.used !== '1') { log.innerHTML = ''; log.dataset.used = '1'; }
+  const row = document.createElement('div');
+  const cls = status >= 500 || status === 0 ? 's5' : status >= 400 ? 's4' : 's2';
+  row.innerHTML = `<span class="m-${method}">${method}</span><span class="path"></span><span class="${cls}">${status || 'ERR'}</span><span>${ms} ms</span>`;
+  row.querySelector('.path').textContent = path;
+  log.prepend(row);
+  const [fn, access] = ROUTE_TO_FN[route] || ['—', '—'];
+  $('nClientTxt').textContent = mode === 'demo' ? 'demo (in browser)' : 'live';
+  $('nApiTxt').textContent = route;
+  $('nFnTxt').textContent = fn;
+  $('nDbTxt').textContent = 'WeatherTable · ' + access;
+  $('lastCall').textContent = `${route} → ${status || 'ERR'} in ${ms} ms`;
+  const nodes = ['nClient', 'nApi', 'nFn', 'nDb'];
+  nodes.forEach(n => $(n).classList.remove('lit'));
+  nodes.forEach((n, i) => setTimeout(() => $(n).classList.add('lit'), i * 140));
+  setTimeout(() => nodes.forEach(n => $(n).classList.remove('lit')), 2200);
+}
+
+// ── UI ───────────────────────────────────────────────────────────────────────
+let selected = 'Rainy', editingId = null, items = [];
+const iconFor = w => (WEATHERS.find(([n]) => n.toLowerCase() === String(w).toLowerCase()) || [, '🌡️'])[1];
+
+function renderChips() {
+  $('chips').innerHTML = '';
+  WEATHERS.forEach(([name, icon]) => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (name === selected ? ' on' : ''); b.textContent = `${icon} ${name}`;
+    b.onclick = () => { selected = name; renderChips(); };
+    $('chips').append(b);
+  });
+}
+function renderItems(flashId) {
+  const box = $('items'); box.innerHTML = '';
+  if (!items.length) { box.innerHTML = '<div class="empty">No readings yet. Add one on the left.</div>'; return; }
+  items.forEach(it => {
+    const el = document.createElement('div'); el.className = 'w' + (it.id === flashId ? ' flash' : '');
+    el.innerHTML = `<div class="icon"></div><div class="town"></div><div class="cond"></div>
+      <div class="meta"></div>
+      <div class="actions"><button class="btn small ghost" data-a="edit">Edit · PUT</button><button class="btn small ghost danger" data-a="del">Delete</button></div>`;
+    el.querySelector('.icon').textContent = iconFor(it.weather);
+    el.querySelector('.town').textContent = it.town;
+    el.querySelector('.cond').textContent = it.weather;
+    el.querySelector('.meta').textContent = `id ${String(it.id).slice(0, 8)}…\nupdated ${(it.updatedAt || it.createdAt || '').replace('T', ' ').slice(0, 16)} UTC`;
+    el.querySelector('.meta').title = it.id;
+    el.querySelector('[data-a=edit]').onclick = () => startEdit(it);
+    el.querySelector('[data-a=del]').onclick = () => remove(it);
+    box.append(el);
+  });
+}
+async function refresh(flashId) {
+  const [status, data] = await api('GET', '/weathers');
+  if (status === 200 && Array.isArray(data)) { items = data; renderItems(flashId); }
+}
+function startEdit(it) {
+  editingId = it.id; $('town').value = it.town;
+  selected = WEATHERS.find(([n]) => n.toLowerCase() === it.weather.toLowerCase())?.[0] || selected; renderChips();
+  $('formTitle').firstChild.textContent = 'Edit reading ';
+  $('cancelEdit').hidden = false;
+  $('submit').textContent = `Update · PUT /weather/${it.id.slice(0, 8)}…`;
+  $('town').focus();
+}
+function stopEdit() {
+  editingId = null; $('formTitle').firstChild.textContent = 'Add a reading ';
+  $('cancelEdit').hidden = true; $('submit').textContent = 'Create · POST /create-weather'; $('town').value = '';
+}
+async function submit() {
+  const payload = { weather: selected, town: $('town').value };
+  $('submit').disabled = true;
+  const [status, data] = editingId
+    ? await api('PUT', `/weather/${encodeURIComponent(editingId)}`, payload)
+    : await api('POST', '/create-weather', payload);
+  $('submit').disabled = false;
+  const msg = $('formMsg');
+  if (status === 200 || status === 201) {
+    const id = editingId || data.item?.id;
+    msg.className = 'msg ok'; msg.textContent = status === 201 ? `${status} Created` : `${status} Updated`;
+    stopEdit(); refresh(id);
+  } else {
+    msg.className = 'msg err'; msg.textContent = `${status || 'ERR'} · ${data?.message || 'Something went wrong'}`;
+  }
+}
+async function remove(it) {
+  const [status, data] = await api('DELETE', `/weather/${encodeURIComponent(it.id)}`);
+  if (status === 200) { if (editingId === it.id) stopEdit(); refresh(); }
+  else { $('formMsg').className = 'msg err'; $('formMsg').textContent = `${status} · ${data?.message}`; }
+}
+async function lookup() {
+  const id = $('lookupId').value.trim(); const msg = $('lookupMsg');
+  if (!id) { msg.className = 'msg err'; msg.textContent = 'Paste an id (hover a card\'s id to see it in full)'; return; }
+  const [status, data] = await api('GET', `/weather/${encodeURIComponent(id)}`);
+  msg.className = 'msg ' + (status === 200 ? 'ok' : 'err');
+  msg.textContent = status === 200 ? `${status} · ${iconFor(data.weather)} ${data.weather} in ${data.town}` : `${status || 'ERR'} · ${data?.message}`;
+}
+function setMode(m) {
+  mode = m; store.set('wb-mode', m);
+  $('modeDemo').classList.toggle('on', m === 'demo'); $('modeLive').classList.toggle('on', m === 'live');
+  $('apiUrl').disabled = m === 'demo'; $('apiUrl').style.opacity = m === 'demo' ? .45 : 1;
+  setDot(''); refresh();
+}
+
+$('towns').innerHTML = TOWNS.map(t => `<option value="${t}">`).join('');
+$('apiUrl').value = store.get('wb-url', '');
+$('apiUrl').addEventListener('change', e => { store.set('wb-url', e.target.value.trim()); if (mode === 'live') refresh(); });
+$('modeDemo').onclick = () => setMode('demo');
+$('modeLive').onclick = () => setMode('live');
+$('submit').onclick = submit;
+$('cancelBtn').onclick = stopEdit;
+$('refresh').onclick = () => refresh();
+$('lookupBtn').onclick = lookup;
+$('town').addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+$('lookupId').addEventListener('keydown', e => { if (e.key === 'Enter') lookup(); });
+seedDemo(); renderChips(); setMode(mode);
+</script>
+</body>
+</html>

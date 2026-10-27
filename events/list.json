@@ -1,0 +1,10 @@
+{
+  "httpMethod": "GET",
+  "path": "/weathers",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "pathParameters": null,
+  "body": null,
+  "isBase64Encoded": false
+}

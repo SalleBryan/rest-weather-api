@@ -1,0 +1,10 @@
+{
+  "httpMethod": "POST",
+  "path": "/create-weather",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "pathParameters": null,
+  "body": "{\"weather\": \"Cold\", \"town\": \"Douala\"}",
+  "isBase64Encoded": false
+}

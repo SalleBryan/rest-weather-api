@@ -1,0 +1,83 @@
+{
+  "info": {
+    "name": "rest-weather-api (AWS SAM + Python)",
+    "description": "CRUDL tests for the serverless weather API. Set the `baseUrl` collection variable to the WeatherApiUrl output from `sam deploy` (no trailing slash), then run the folder top to bottom: Create saves the new id, the other requests reuse it.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://YOUR-API-ID.execute-api.us-east-2.amazonaws.com/dev" },
+    { "key": "weatherId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Create weather",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('201 Created', () => pm.response.to.have.status(201));",
+        "const item = pm.response.json().item;",
+        "pm.test('returns the new item', () => pm.expect(item.town).to.eql('Douala'));",
+        "pm.collectionVariables.set('weatherId', item.id);"
+      ] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"weather\": \"Cold\",\n  \"town\": \"Douala\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": "{{baseUrl}}/create-weather"
+      }
+    },
+    {
+      "name": "2. Get weather",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('200 OK', () => pm.response.to.have.status(200));",
+        "pm.test('same id', () => pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('weatherId')));"
+      ] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/weather/{{weatherId}}" }
+    },
+    {
+      "name": "3. Update weather",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('200 OK', () => pm.response.to.have.status(200));",
+        "pm.test('weather updated', () => pm.expect(pm.response.json().weather).to.eql('HOT'));"
+      ] } }],
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"weather\": \"HOT\",\n  \"town\": \"Douala\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": "{{baseUrl}}/weather/{{weatherId}}"
+      }
+    },
+    {
+      "name": "4. List weathers",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('200 OK', () => pm.response.to.have.status(200));",
+        "pm.test('is a list', () => pm.expect(pm.response.json()).to.be.an('array'));"
+      ] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/weathers" }
+    },
+    {
+      "name": "5. Delete weather",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('200 OK', () => pm.response.to.have.status(200));"
+      ] } }],
+      "request": { "method": "DELETE", "url": "{{baseUrl}}/weather/{{weatherId}}" }
+    },
+    {
+      "name": "6. Get deleted weather (expect 404)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('404 Not Found', () => pm.response.to.have.status(404));"
+      ] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/weather/{{weatherId}}" }
+    },
+    {
+      "name": "7. Create with bad body (expect 400)",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('400 Bad Request', () => pm.response.to.have.status(400));"
+      ] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"weather\": \"Cold\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": "{{baseUrl}}/create-weather"
+      }
+    }
+  ]
+}
