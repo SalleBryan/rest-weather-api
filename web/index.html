@@ -38,7 +38,19 @@
   --mono: 'Google Sans Code', ui-monospace, 'Cascadia Code', Consolas, monospace;
   color-scheme: light;
 }
-:root[data-mode="dark"] { color-scheme: dark; }
+:root[data-mode="dark"] {
+  color-scheme: dark;
+  /* dark fallbacks (the "board" dark scheme), used only if palettes.js fails to load */
+  --md-sys-color-primary: #b1c5ff; --md-sys-color-on-primary: #002c71;
+  --md-sys-color-secondary: #b3c5fb; --md-sys-color-secondary-container: #324573; --md-sys-color-on-secondary-container: #a1b4e9;
+  --md-sys-color-tertiary-container: #bc5100; --md-sys-color-on-tertiary-container: #fff5f2;
+  --md-sys-color-error: #ffb4ab;
+  --md-sys-color-surface: #11131a; --md-sys-color-on-surface: #e1e2ec; --md-sys-color-on-surface-variant: #c2c6d6;
+  --md-sys-color-surface-container-lowest: #0c0e15; --md-sys-color-surface-container-low: #191b23;
+  --md-sys-color-surface-container: #1d1f27; --md-sys-color-surface-container-high: #272a31; --md-sys-color-surface-container-highest: #32343c;
+  --md-sys-color-outline: #8c909f; --md-sys-color-outline-variant: #424654;
+  --md-sys-color-inverse-surface: #e1e2ec; --md-sys-color-inverse-on-surface: #2e3038;
+}
 
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
@@ -502,16 +514,17 @@ const setShape = (el, name) => { if (el) el.style.clipPath = SHAPES[name] || SHA
 let themeKey = 'board';
 const media = matchMedia('(prefers-color-scheme: dark)');
 const params = new URLSearchParams(location.search);
-const modePref = () => params.get('theme') || store.get('wb-theme', 'system');
-const isDark = () => modePref() === 'dark' || (modePref() === 'system' && media.matches);
+// Kept in memory as well as localStorage: storage can be blocked (sandboxed previews, data: URLs, strict privacy settings).
+let modeChoice = params.get('theme') || store.get('wb-theme', 'system');
+const isDark = () => modeChoice === 'dark' || (modeChoice === 'system' && media.matches);
 function paletteFor(key) { return (window.PALETTES || {})[key]?.[isDark() ? 'dark' : 'light']; }
 function applyTheme(key = themeKey) {
   themeKey = key;
-  const p = paletteFor(key); if (!p) return;
   const root = document.documentElement;
   root.dataset.mode = isDark() ? 'dark' : 'light';
-  for (const [role, hex] of Object.entries(p)) root.style.setProperty('--md-sys-color-' + role, hex);
   $('themeBtn').firstElementChild.textContent = isDark() ? 'light_mode' : 'dark_mode';
+  const p = paletteFor(key); if (!p) return; // no palettes.js: the CSS fallbacks for data-mode take over
+  for (const [role, hex] of Object.entries(p)) root.style.setProperty('--md-sys-color-' + role, hex);
   document.querySelector('meta[name=theme-color]')?.setAttribute('content', p.surface);
 }
 function cardVars(key) {
@@ -519,7 +532,7 @@ function cardVars(key) {
   return `--c-pc:${p['primary-container']};--c-opc:${p['on-primary-container']};--c-p:${p.primary};--c-sch:${p['surface-container-high']};--c-os:${p['on-surface']};--c-osv:${p['on-surface-variant']}`;
 }
 media.addEventListener('change', () => { applyTheme(); render(); });
-$('themeBtn').onclick = () => { store.set('wb-theme', isDark() ? 'light' : 'dark'); params.delete('theme'); applyTheme(); render(); };
+$('themeBtn').onclick = () => { modeChoice = isDark() ? 'light' : 'dark'; store.set('wb-theme', modeChoice); applyTheme(); render(); };
 
 /* ── Demo mode: the five Lambda handlers re-implemented in the browser ──── */
 // crypto.randomUUID only exists in secure contexts (https, localhost, file); fall back elsewhere.
