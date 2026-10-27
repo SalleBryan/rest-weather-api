@@ -100,6 +100,15 @@ Copy **`WeatherApiUrl`** from the Outputs, then test it any of three ways:
 2. **Smoke test:** `uv run python scripts/smoke_test.py <WeatherApiUrl>`
 3. **Dashboard:** open `web/index.html` → *Live API* → paste the URL.
 
+### Throttling
+The API has no login, so the `dev` stage is capped at **5 requests/second with a burst of 5** (`MethodSettings` on `WeatherApi`). Requests over the limit get `429 Too Many Requests` and never reach Lambda. This caps how much a sustained flood can cost.
+
+Two things I learned testing this on the live API:
+- **API Gateway throttling is best-effort.** It reliably limits *sustained* traffic, but a sharp burst (40 requests in 2 seconds) still let most requests through before the limit kicked in.
+- **New AWS accounts can run only 10 Lambda functions at the same time**, across the whole region and shared by every app in the account. Requests beyond that are rejected by Lambda, and API Gateway reports them as `500` errors. A big burst here can briefly throttle your *other* apps too.
+
+The fix for the second one is free: in the AWS console, open **Service Quotas → AWS Lambda → Concurrent executions** and request an increase (e.g. to 1000). Check your current limit with `aws lambda get-account-settings`.
+
 ### Clean up when you're done
 ```powershell
 sam delete --stack-name rest-weather-api

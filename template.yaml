@@ -31,6 +31,15 @@ Resources:
     Properties:
       StageName: dev
       Description: serverless api for weather application
+      # The API is public, so cap traffic for every route on this stage.
+      # Requests over the limit get "429 Too Many Requests" instead of running up a bill.
+      # Keep the burst below the account's Lambda concurrency limit (10 on new accounts,
+      # shared by every function in the region) so a spike here can't starve other apps.
+      MethodSettings:
+        - ResourcePath: "/*"
+          HttpMethod: "*"
+          ThrottlingRateLimit: 5     # steady requests per second
+          ThrottlingBurstLimit: 5    # short spikes allowed above the steady rate
 
   # ── The database ────────────────────────────────────────────────────────────
   WeatherTable:
