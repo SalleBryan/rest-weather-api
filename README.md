@@ -23,7 +23,8 @@ The **whole backend** (API, five functions, the table and every permission betwe
 | --- | --- |
 | `template.yaml` | The SAM template: Globals, the API, the table, five functions and their **Connectors** (permissions) |
 | `src/` | One small Python handler per endpoint, plus `api_response.py` (shared response + validation helpers) |
-| `web/index.html` | **Weather Board** dashboard. Open it in a browser: *Demo* mode works offline, *Live API* talks to your deployment and lights up which Lambda each click hits |
+| `web/index.html` | **Weather Board** dashboard in Material 3 Expressive. Open it in a browser: *Demo* mode works offline, *Live API* talks to your deployment and shows which Lambda each click hits. Design research and decisions: [`docs/DESIGN.md`](docs/DESIGN.md) |
+| `web/palettes.js` | M3 colour schemes (light + dark) for each weather condition, generated with Google's `material-color-utilities` |
 | `postman/` | Postman collection: the full CRUDL flow plus 404/400 checks, with tests |
 | `scripts/smoke_test.py` | Runs the full CRUDL cycle against any deployed URL and prints PASS/FAIL per request |
 | `scripts/local_api.py` | Runs the real handlers on `http://localhost:3000/dev` with an in-memory DynamoDB (no AWS, no Docker) |

@@ -4,194 +4,538 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Weather Board</title>
+<meta name="description" content="A Material 3 Expressive dashboard for a serverless CRUDL weather API (AWS SAM, API Gateway, Lambda, DynamoDB).">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght,ROND@6..144,100..1000,0..100&family=Google+Sans+Code:wght@400..700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..700,0..1,-50..200&icon_names=ac_unit,add,air,api,arrow_forward,check,close,cloud,content_copy,dark_mode,database,delete,device_thermostat,devices,door_front,edit,foggy,history,light_mode,local_fire_department,location_on,rainy,rainy_light,refresh,science,search,sensors,sunny,thunderstorm&display=block">
+<script src="palettes.js"></script>
 <style>
-  :root {
-    --bg: #f4f6fb; --surface: #ffffff; --surface-2: #eef1f8; --border: #dde3ee;
-    --text: #0f172a; --muted: #5b6478; --accent: #ff9900; --accent-ink: #1a1200;
-    --blue: #2563eb; --green: #059669; --red: #dc2626; --violet: #7c3aed;
-    --shadow: 0 1px 2px rgba(15,23,42,.06), 0 8px 24px rgba(15,23,42,.06);
-    --radius: 14px;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #0b1020; --surface: #121a2e; --surface-2: #19223a; --border: #26304a;
-      --text: #e8ecf6; --muted: #98a2b8; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
-      --blue: #60a5fa; --green: #34d399; --red: #f87171; --violet: #a78bfa;
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #0b1020; --surface: #121a2e; --surface-2: #19223a; --border: #26304a;
-    --text: #e8ecf6; --muted: #98a2b8; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
-    --blue: #60a5fa; --green: #34d399; --red: #f87171; --violet: #a78bfa;
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 Inter, system-ui, sans-serif; }
-  .wrap { max-width: 1240px; margin: 0 auto; padding: 24px 16px 48px; }
-  header { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-  .brand { display: flex; gap: 12px; align-items: center; }
-  .logo { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, var(--accent), #ffb84d); display: grid; place-items: center; font-size: 24px; box-shadow: var(--shadow); }
-  h1 { font-size: 22px; margin: 0; letter-spacing: -.02em; }
-  .sub { color: var(--muted); font-size: 13px; }
-  .conn { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 6px 6px 6px 14px; box-shadow: var(--shadow); max-width: 100%; }
-  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); flex: none; }
-  .dot.ok { background: var(--green); box-shadow: 0 0 0 4px color-mix(in srgb, var(--green) 20%, transparent); }
-  .dot.err { background: var(--red); }
-  .conn input { border: 0; background: transparent; color: var(--text); font: 13px 'JetBrains Mono', monospace; width: min(360px, 52vw); outline: none; }
-  .seg { display: inline-flex; background: var(--surface-2); border-radius: 999px; padding: 3px; }
-  .seg button { border: 0; background: transparent; color: var(--muted); font: 600 12px Inter; padding: 6px 12px; border-radius: 999px; cursor: pointer; }
-  .seg button.on { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+/* ── Tokens ─────────────────────────────────────────────────────────────── */
+:root {
+  /* colour roles are written by applyTheme() from palettes.js; these are fallbacks */
+  --md-sys-color-primary: #0052c4; --md-sys-color-on-primary: #fff;
+  --md-sys-color-primary-container: #2b6be4; --md-sys-color-on-primary-container: #f7f7ff;
+  --md-sys-color-secondary: #4e5d8c; --md-sys-color-secondary-container: #c6d4ff; --md-sys-color-on-secondary-container: #364473;
+  --md-sys-color-tertiary-container: #c94a00; --md-sys-color-on-tertiary-container: #fffbff;
+  --md-sys-color-error: #ba1a1a;
+  --md-sys-color-surface: #f9f9ff; --md-sys-color-on-surface: #1a1b22; --md-sys-color-on-surface-variant: #434654;
+  --md-sys-color-surface-container-lowest: #fff; --md-sys-color-surface-container-low: #f3f3fd;
+  --md-sys-color-surface-container: #ededf8; --md-sys-color-surface-container-high: #e7e7f2; --md-sys-color-surface-container-highest: #e2e2ec;
+  --md-sys-color-outline: #737686; --md-sys-color-outline-variant: #c3c6d7;
+  --md-sys-color-inverse-surface: #2f3038; --md-sys-color-inverse-on-surface: #f0f0fa;
 
-  .grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; }
-  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; }
-  .card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 14px; display: flex; justify-content: space-between; align-items: center; }
-  label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 6px; }
-  input[type=text] { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text); font: inherit; outline: none; }
-  input[type=text]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip { border: 1px solid var(--border); background: var(--surface-2); color: var(--text); border-radius: 999px; padding: 6px 10px; font: 500 13px Inter; cursor: pointer; }
-  .chip.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 700; }
-  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 10px; padding: 10px 14px; font: 700 14px Inter; cursor: pointer; }
-  .btn.primary { background: var(--accent); color: var(--accent-ink); width: 100%; margin-top: 16px; }
-  .btn.ghost { background: var(--surface-2); color: var(--text); }
-  .btn.small { padding: 6px 10px; font-size: 12px; border-radius: 8px; }
-  .btn.danger { color: var(--red); }
-  .btn:disabled { opacity: .5; cursor: not-allowed; }
-  .row { display: flex; gap: 8px; }
-  .row input { flex: 1; }
-  .msg { font-size: 13px; margin-top: 10px; min-height: 20px; }
-  .msg.err { color: var(--red); } .msg.ok { color: var(--green); }
+  /* M3 Expressive corner scale */
+  --r-xs: 4px; --r-s: 8px; --r-m: 12px; --r-l: 16px; --r-l-inc: 20px; --r-xl: 28px; --r-xl-inc: 32px; --r-xxl: 48px; --r-full: 999px;
 
-  .items { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
-  .w { position: relative; border: 1px solid var(--border); border-radius: 12px; padding: 14px; background: var(--surface); overflow: hidden; }
-  .w .icon { font-size: 34px; line-height: 1; }
-  .w .town { font-weight: 800; font-size: 17px; margin-top: 8px; letter-spacing: -.01em; }
-  .w .cond { color: var(--muted); font-weight: 600; }
-  .w .meta { font: 11px 'JetBrains Mono', monospace; color: var(--muted); margin-top: 10px; white-space: pre-line; }
-  .w .actions { display: flex; gap: 6px; margin-top: 12px; }
-  .w.flash { animation: flash 1.2s ease; }
-  @keyframes flash { 0% { box-shadow: 0 0 0 0 var(--accent); } 30% { box-shadow: 0 0 0 4px var(--accent); } 100% { box-shadow: 0 0 0 0 transparent; } }
-  .empty { text-align: center; padding: 40px 10px; color: var(--muted); border: 1px dashed var(--border); border-radius: 12px; }
+  /* Springs (replaced at startup with linear() curves generated from M3 Expressive spring values) */
+  --spring-fast: cubic-bezier(.3, 1.4, .5, 1); --spring-fast-ms: 350ms;
+  --spring-default: cubic-bezier(.3, 1.3, .5, 1); --spring-default-ms: 500ms;
+  --spring-slow: cubic-bezier(.3, 1.2, .5, 1); --spring-slow-ms: 750ms;
+  --effects: cubic-bezier(.2, 0, 0, 1); --effects-ms: 300ms;
 
-  .flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; align-items: stretch; margin-bottom: 14px; }
-  @media (max-width: 600px) { .flow { grid-template-columns: repeat(2, 1fr); } }
-  .node { border: 1px solid var(--border); border-radius: 12px; padding: 10px; text-align: center; background: var(--surface-2); transition: all .25s; position: relative; }
-  .node b { display: block; font-size: 13px; }
-  .node span { font: 11px 'JetBrains Mono', monospace; color: var(--muted); word-break: break-all; }
-  .node.lit { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--surface)); transform: translateY(-2px); }
-  .node .em { font-size: 20px; }
-  .log { font: 12px/1.6 'JetBrains Mono', monospace; max-height: 230px; overflow: auto; background: var(--surface-2); border-radius: 10px; padding: 8px 10px; }
-  .log div { display: grid; grid-template-columns: 58px 1fr 44px 56px; gap: 8px; white-space: nowrap; }
-  .log .path { overflow: hidden; text-overflow: ellipsis; }
-  .s2 { color: var(--green); } .s4 { color: #d97706; } .s5 { color: var(--red); }
-  .m-GET { color: var(--blue); } .m-POST { color: var(--green); } .m-PUT { color: #d97706; } .m-DELETE { color: var(--red); }
-  .stack { display: grid; gap: 20px; }
-  footer { color: var(--muted); font-size: 12px; text-align: center; margin-top: 28px; }
-  code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--surface-2); padding: 1px 5px; border-radius: 5px; }
+  --font: 'Google Sans Flex', 'Google Sans', Roboto, system-ui, sans-serif;
+  --mono: 'Google Sans Code', ui-monospace, 'Cascadia Code', Consolas, monospace;
+  color-scheme: light;
+}
+:root[data-mode="dark"] { color-scheme: dark; }
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; min-height: 100vh;
+  background: var(--md-sys-color-surface); color: var(--md-sys-color-on-surface);
+  font: 400 16px/24px var(--font); font-variation-settings: 'ROND' 0;
+  transition: background-color var(--effects-ms) var(--effects), color var(--effects-ms) var(--effects);
+}
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+.sym {
+  font-family: 'Material Symbols Rounded'; font-weight: normal; font-style: normal; line-height: 1;
+  font-size: 24px; letter-spacing: normal; text-transform: none; white-space: nowrap; direction: ltr;
+  -webkit-font-feature-settings: 'liga'; font-feature-settings: 'liga'; -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 450, 'GRAD' 0, 'opsz' 24; user-select: none; flex: none;
+}
+.sym.fill { font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24; }
+.mono { font-family: var(--mono); }
+:focus-visible { outline: 3px solid var(--md-sys-color-secondary, var(--md-sys-color-primary)); outline-offset: 2px; }
+
+/* type scale (emphasized = heavier, rounder) */
+.display-hero { font-size: clamp(56px, 9.2vw, 132px); line-height: .92; font-weight: 760; letter-spacing: -0.035em; font-variation-settings: 'ROND' 100, 'opsz' 144; margin: 0; }
+.display-s { font-size: clamp(30px, 3.6vw, 44px); line-height: 1.05; font-weight: 640; letter-spacing: -0.02em; font-variation-settings: 'ROND' 100, 'opsz' 72; margin: 0; }
+.headline-m { font-size: 28px; line-height: 36px; font-weight: 650; letter-spacing: -0.01em; font-variation-settings: 'ROND' 100; margin: 0; }
+.title-l { font-size: 22px; line-height: 28px; font-weight: 650; font-variation-settings: 'ROND' 80; margin: 0; }
+.title-m { font-size: 16px; line-height: 24px; font-weight: 600; letter-spacing: .01em; margin: 0; }
+.label-l { font-size: 14px; line-height: 20px; font-weight: 600; letter-spacing: .01em; }
+.label-m { font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: .04em; }
+.body-m { font-size: 14px; line-height: 20px; }
+.muted { color: var(--md-sys-color-on-surface-variant); }
+
+/* ── Shapes ─────────────────────────────────────────────────────────────── */
+.shape { transition: clip-path var(--spring-slow-ms) var(--spring-slow), background-color var(--effects-ms) var(--effects), transform var(--spring-slow-ms) var(--spring-slow); will-change: clip-path; }
+.glyph { display: grid; place-items: center; background: var(--c-pc, var(--md-sys-color-primary-container)); color: var(--c-opc, var(--md-sys-color-on-primary-container)); }
+
+/* ── App bar ────────────────────────────────────────────────────────────── */
+.appbar { position: sticky; top: 0; z-index: 20; background: var(--md-sys-color-surface); transition: background-color var(--effects-ms) var(--effects); }
+.appbar-inner { max-width: 1360px; margin: 0 auto; padding: 14px 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 12px; margin-right: auto; }
+.brand .glyph { width: 44px; height: 44px; }
+.brand .title-l { font-size: 24px; font-weight: 720; letter-spacing: -.01em; }
+.brand small { display: block; font-size: 12px; line-height: 16px; color: var(--md-sys-color-on-surface-variant); font-weight: 500; }
+.wavy { position: absolute; left: 0; right: 0; bottom: -2px; height: 6px; overflow: hidden; opacity: 0; transition: opacity 200ms; pointer-events: none; }
+.wavy.on { opacity: 1; }
+.wavy svg { width: calc(100% + 40px); height: 6px; animation: wave 900ms linear infinite; }
+.wavy path { stroke: var(--md-sys-color-primary); stroke-width: 3; fill: none; stroke-linecap: round; }
+@keyframes wave { from { transform: translateX(0); } to { transform: translateX(-40px); } }
+
+.search { display: flex; align-items: center; gap: 8px; height: 48px; padding: 0 6px 0 16px; border-radius: var(--r-full); background: var(--md-sys-color-surface-container-high); min-width: 260px; flex: 0 1 340px; transition: background-color var(--effects-ms); }
+.search:focus-within { background: var(--md-sys-color-surface-container-highest); }
+.search input { flex: 1; min-width: 0; border: 0; background: transparent; outline: none; font-size: 15px; }
+.search input::placeholder { color: var(--md-sys-color-on-surface-variant); }
+
+/* button group (connected) */
+.bgroup { display: inline-flex; gap: 2px; padding: 0; }
+.bgroup button { height: 40px; border: 0; padding: 0 16px; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px;
+  background: var(--md-sys-color-surface-container-highest); color: var(--md-sys-color-on-surface-variant);
+  border-radius: var(--r-s); transition: border-radius var(--spring-fast-ms) var(--spring-fast), background-color var(--effects-ms), color var(--effects-ms); }
+.bgroup button:first-child { border-radius: var(--r-full) var(--r-s) var(--r-s) var(--r-full); }
+.bgroup button:last-child { border-radius: var(--r-s) var(--r-full) var(--r-full) var(--r-s); }
+.bgroup button[aria-pressed="true"] { background: var(--md-sys-color-secondary-container, var(--md-sys-color-primary-container)); color: var(--md-sys-color-on-secondary-container, var(--md-sys-color-on-primary-container)); border-radius: var(--r-full); }
+.bgroup button:active { border-radius: var(--r-m); }
+.bgroup .sym { font-size: 20px; }
+
+.urlfield { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: var(--r-full); border: 1px solid var(--md-sys-color-outline-variant); background: transparent; max-width: 0; opacity: 0; overflow: hidden; padding-inline: 0; border-width: 0;
+  transition: max-width var(--spring-default-ms) var(--spring-default), opacity 200ms, padding var(--spring-default-ms) var(--spring-default); }
+.urlfield.open { max-width: 460px; opacity: 1; padding-inline: 14px; border-width: 1px; }
+.urlfield input { border: 0; outline: none; background: transparent; width: 330px; font: 13px var(--mono); }
+.status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--md-sys-color-outline); flex: none; transition: background-color 200ms; }
+.status-dot.ok { background: #1e9e5a; } .status-dot.err { background: var(--md-sys-color-error, #ba1a1a); }
+
+.icon-btn { width: 48px; height: 48px; border: 0; display: inline-grid; place-items: center; background: transparent; color: var(--md-sys-color-on-surface-variant); border-radius: var(--r-full);
+  transition: border-radius var(--spring-fast-ms) var(--spring-fast), background-color var(--effects-ms); }
+.icon-btn:hover { background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent); }
+.icon-btn:active { border-radius: var(--r-m); }
+.icon-btn.tonal { background: var(--md-sys-color-surface-container-highest); }
+.icon-btn.sm { width: 40px; height: 40px; }
+.icon-btn.sm .sym { font-size: 20px; }
+
+/* ── Layout ─────────────────────────────────────────────────────────────── */
+main { max-width: 1360px; margin: 0 auto; padding: 8px 24px 120px; display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 16px 20px; align-items: start; }
+.col-main { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; min-width: 0; }
+.col-side { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; position: sticky; top: 92px; min-width: 0; }
+
+/* ── Hero ───────────────────────────────────────────────────────────────── */
+.hero { position: relative; overflow: hidden; min-height: 360px; border-radius: var(--r-xxl); padding: 36px 40px; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 24px;
+  background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container);
+  transition: background-color var(--spring-slow-ms) var(--effects), color var(--spring-slow-ms) var(--effects); }
+.hero .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; letter-spacing: .02em; padding: 6px 14px 6px 10px; border-radius: var(--r-full); background: color-mix(in srgb, currentColor 12%, transparent); }
+.hero .eyebrow .sym { font-size: 18px; }
+.hero h1 { margin-top: 20px; }
+.hero h1 .cond { display: inline-block; }
+.hero .where { margin-top: 10px; display: flex; align-items: center; gap: 8px; }
+.hero .where .sym { font-size: 34px; }
+.hero .meta { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: var(--r-s); font-size: 13px; font-weight: 600; border: 0;
+  background: color-mix(in srgb, currentColor 10%, transparent); color: inherit; }
+.chip .sym { font-size: 18px; }
+button.chip { transition: border-radius var(--spring-fast-ms) var(--spring-fast), background-color var(--effects-ms); }
+button.chip:hover { background: color-mix(in srgb, currentColor 16%, transparent); }
+button.chip:active { border-radius: var(--r-l); }
+.hero-art { position: relative; width: clamp(200px, 24vw, 300px); aspect-ratio: 1; margin-right: -8px; }
+.hero-art .back, .hero-art .front { position: absolute; inset: 0; }
+.hero-art .back { background: var(--md-sys-color-on-primary-container); opacity: .1; transform: rotate(18deg) scale(1.12); animation: drift 26s linear infinite; }
+.hero-art .front { background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); display: grid; place-items: center; }
+.hero-art .front .sym { font-size: clamp(84px, 9vw, 120px); font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 48; transition: transform var(--spring-slow-ms) var(--spring-slow); }
+@keyframes drift { to { transform: rotate(378deg) scale(1.12); } }
+.hero.empty .display-hero { font-size: clamp(48px, 7vw, 96px); }
+
+/* ── Glance tiles ───────────────────────────────────────────────────────── */
+.glance { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.tile { position: relative; min-height: 168px; padding: 18px 20px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
+.tile .label-m { text-transform: uppercase; opacity: .82; }
+.tile .num { font-size: 52px; line-height: 1; font-weight: 720; letter-spacing: -.03em; font-variation-settings: 'ROND' 100, 'opsz' 96; }
+.tile .sub { font-size: 14px; line-height: 20px; font-weight: 500; }
+.t-count { background: var(--md-sys-color-tertiary-container); color: var(--md-sys-color-on-tertiary-container); border-radius: var(--r-xl-inc); }
+.t-towns { background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container); border-radius: var(--r-full); text-align: center; align-items: center; }
+.t-common { background: var(--md-sys-color-surface-container-highest); border-radius: var(--r-xl) var(--r-xl) var(--r-xl) var(--r-s); }
+.t-common .glyph { width: 56px; height: 56px; }
+.t-recent { background: var(--md-sys-color-surface-container-high); border-radius: 999px 999px var(--r-xl) var(--r-xl); padding-top: 34px; text-align: center; align-items: center; }
+.t-recent .num { font-size: 34px; }
+
+/* ── Readings ───────────────────────────────────────────────────────────── */
+.section { background: var(--md-sys-color-surface-container-low); border-radius: var(--r-xxl); padding: 24px; transition: background-color var(--effects-ms); }
+.section-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.section-head .count { font: 600 14px var(--font); padding: 2px 10px; border-radius: var(--r-full); background: var(--md-sys-color-surface-container-highest); color: var(--md-sys-color-on-surface-variant); }
+.filters { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px; margin: 0 -2px 16px; }
+.filters::-webkit-scrollbar { display: none; }
+.fchip { flex: none; height: 36px; padding: 0 14px 0 12px; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--r-s); border: 1px solid var(--md-sys-color-outline-variant); background: transparent; color: var(--md-sys-color-on-surface-variant); font-weight: 600; font-size: 14px;
+  transition: border-radius var(--spring-fast-ms) var(--spring-fast), background-color var(--effects-ms), color var(--effects-ms), border-color var(--effects-ms); }
+.fchip .sym { font-size: 18px; }
+.fchip[aria-pressed="true"] { background: var(--md-sys-color-secondary-container, var(--md-sys-color-primary-container)); color: var(--md-sys-color-on-secondary-container, var(--md-sys-color-on-primary-container)); border-color: transparent; border-radius: var(--r-full); }
+.fchip .n { font-weight: 500; opacity: .7; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.card { position: relative; padding: 18px; border-radius: var(--r-xl); background: var(--c-sch, var(--md-sys-color-surface-container-high)); color: var(--c-os, var(--md-sys-color-on-surface));
+  display: grid; grid-template-columns: auto 1fr; gap: 14px 14px; align-items: start; outline: 2px solid transparent; outline-offset: -2px;
+  transition: border-radius var(--spring-default-ms) var(--spring-default), transform var(--spring-default-ms) var(--spring-default), outline-color 200ms, background-color var(--effects-ms); animation: enter var(--spring-slow-ms) var(--spring-slow) both; }
+.card:hover { border-radius: var(--r-xxl); }
+.card.editing { outline-color: var(--c-p, var(--md-sys-color-primary)); }
+.card.flash { animation: enter var(--spring-slow-ms) var(--spring-slow) both, pop 900ms var(--spring-default) 1; }
+@keyframes enter { from { opacity: 0; transform: translateY(12px) scale(.96); } }
+@keyframes pop { 30% { transform: scale(1.03); } }
+.card .glyph { width: 64px; height: 64px; }
+.card .glyph .sym { font-size: 30px; font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 40; transition: transform var(--spring-default-ms) var(--spring-default); }
+.card:hover .glyph .sym { transform: rotate(-12deg) scale(1.08); }
+.card .town { font-size: 22px; line-height: 28px; font-weight: 700; letter-spacing: -.01em; font-variation-settings: 'ROND' 100; overflow-wrap: anywhere; }
+.card .cond { color: var(--c-p, var(--md-sys-color-primary)); font-weight: 650; font-size: 15px; }
+.card .foot { grid-column: 1 / -1; display: flex; align-items: center; gap: 4px; }
+.card .when { font-size: 12px; line-height: 16px; margin-top: 4px; color: var(--c-osv, var(--md-sys-color-on-surface-variant)); }
+.card .id { margin-right: auto; display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 10px; border-radius: var(--r-full); border: 0; font: 500 12px var(--mono); background: color-mix(in srgb, var(--c-os, #000) 8%, transparent); color: var(--c-osv, var(--md-sys-color-on-surface-variant)); }
+.card .id .sym { font-size: 14px; }
+.card .icon-btn { color: var(--c-osv, var(--md-sys-color-on-surface-variant)); }
+
+.empty { display: grid; justify-items: center; gap: 12px; text-align: center; padding: 48px 16px; color: var(--md-sys-color-on-surface-variant); }
+.empty .glyph { width: 112px; height: 112px; }
+.empty .glyph .sym { font-size: 52px; }
+
+/* loading indicator (M3 Expressive): shapes morphing inside a container */
+.loader { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; background: var(--md-sys-color-primary-container); }
+.loader i { width: 30px; height: 30px; background: var(--md-sys-color-on-primary-container); animation: spin 1.6s linear infinite; }
+.loader.bare { background: transparent; width: 22px; height: 22px; }
+.loader.bare i { width: 20px; height: 20px; background: currentColor; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Under the hood ─────────────────────────────────────────────────────── */
+.hood { background: var(--md-sys-color-surface-container); border-radius: var(--r-xxl); padding: 22px; }
+.hood h2 { margin-bottom: 2px; }
+.steps { list-style: none; margin: 18px 0 0; padding: 0; display: grid; gap: 0; }
+.step { display: grid; grid-template-columns: 52px 1fr; gap: 12px; align-items: center; position: relative; padding: 6px 0; }
+.step .glyph { width: 52px; height: 52px; background: var(--md-sys-color-surface-container-highest); color: var(--md-sys-color-on-surface-variant); }
+.step .glyph .sym { font-size: 24px; }
+.step .glyph b { font-size: 26px; font-weight: 800; font-variation-settings: 'ROND' 100; }
+.step.lit .glyph { background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); }
+.step .t { font-weight: 650; font-size: 15px; line-height: 20px; }
+.step .d { font: 500 12px/16px var(--mono); color: var(--md-sys-color-on-surface-variant); overflow-wrap: anywhere; }
+.step + .step::before { content: ''; position: absolute; left: 25px; top: -10px; height: 20px; width: 2px; background: var(--md-sys-color-outline-variant); border-radius: 2px; transition: background-color 200ms; }
+.step.lit + .step.lit::before { background: var(--md-sys-color-primary); }
+.lastcall { margin-top: 14px; padding: 12px 14px; border-radius: var(--r-l); background: var(--md-sys-color-surface-container-highest); display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.lastcall .ms { margin-left: auto; font: 600 13px var(--mono); }
+.log { margin-top: 12px; display: grid; gap: 4px; max-height: 248px; overflow: auto; }
+.logrow { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto auto; gap: 8px; align-items: center; padding: 8px 10px; border-radius: var(--r-m); background: var(--md-sys-color-surface-container-low); font: 500 12px var(--mono); animation: enter 400ms var(--spring-fast) both; }
+.logrow:first-child { border-radius: var(--r-l) var(--r-l) var(--r-m) var(--r-m); }
+.logrow .path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.method { justify-self: start; padding: 2px 8px; border-radius: var(--r-full); font: 700 11px var(--mono); }
+.m-GET { background: #d8e6ff; color: #003a8c; } .m-POST { background: #c9f2d6; color: #00522a; } .m-PUT { background: #ffe7a6; color: #5b4300; } .m-DELETE { background: #ffdad6; color: #8c1d18; }
+:root[data-mode="dark"] .m-GET { background: #0b3c86; color: #d8e6ff; } :root[data-mode="dark"] .m-POST { background: #0f5132; color: #c9f2d6; }
+:root[data-mode="dark"] .m-PUT { background: #5b4300; color: #ffe7a6; } :root[data-mode="dark"] .m-DELETE { background: #8c1d18; color: #ffdad6; }
+.st { font-weight: 700; } .s2 { color: #1e8e4f; } .s4 { color: #b26a00; } .s5, .s0 { color: var(--md-sys-color-error, #ba1a1a); }
+details.resp { margin-top: 12px; }
+details.resp summary { cursor: pointer; font-weight: 600; font-size: 14px; list-style: none; display: flex; align-items: center; gap: 6px; }
+details.resp summary::-webkit-details-marker { display: none; }
+details.resp pre { margin: 8px 0 0; padding: 12px; border-radius: var(--r-l); background: var(--md-sys-color-surface-container-lowest); font: 12px/18px var(--mono); max-height: 220px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* ── FAB ────────────────────────────────────────────────────────────────── */
+.fab { position: fixed; right: 28px; bottom: 28px; z-index: 30; height: 72px; padding: 0 28px 0 22px; border: 0; display: inline-flex; align-items: center; gap: 12px;
+  background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); border-radius: var(--r-xl); font-size: 17px; font-weight: 700; font-variation-settings: 'ROND' 100;
+  box-shadow: 0 6px 16px rgb(0 0 0 / .18), 0 2px 4px rgb(0 0 0 / .12);
+  transition: border-radius var(--spring-fast-ms) var(--spring-fast), transform var(--spring-fast-ms) var(--spring-fast), background-color var(--effects-ms); }
+.fab .sym { font-size: 28px; }
+.fab:hover { border-radius: var(--r-xxl); }
+.fab:active { transform: scale(.94); border-radius: var(--r-l); }
+
+/* ── Sheet ──────────────────────────────────────────────────────────────── */
+.scrim { position: fixed; inset: 0; z-index: 40; background: rgb(0 0 0 / .32); opacity: 0; pointer-events: none; transition: opacity var(--effects-ms) var(--effects); }
+.scrim.open { opacity: 1; pointer-events: auto; }
+.sheet { position: fixed; z-index: 41; top: 12px; right: 12px; bottom: 12px; width: min(460px, calc(100vw - 24px)); border-radius: var(--r-xxl); background: var(--md-sys-color-surface-container-low); color: var(--md-sys-color-on-surface);
+  display: flex; flex-direction: column; transform: translateX(calc(100% + 24px)); transition: transform var(--spring-default-ms) var(--spring-default); box-shadow: 0 12px 40px rgb(0 0 0 / .25); }
+.sheet.open { transform: none; }
+.sheet header { display: flex; align-items: center; gap: 8px; padding: 18px 16px 6px 28px; }
+.sheet header h2 { margin-right: auto; }
+.sheet .body { flex: 1; overflow: auto; padding: 8px 28px 16px; }
+.sheet footer { display: flex; align-items: center; gap: 12px; padding: 16px 24px 24px; }
+.sheet footer .route { margin-right: auto; font: 500 12px var(--mono); color: var(--md-sys-color-on-surface-variant); }
+.field { position: relative; margin-top: 18px; }
+.field input { width: 100%; height: 60px; padding: 22px 16px 6px; border: 0; border-radius: var(--r-l) var(--r-l) var(--r-xs) var(--r-xs); background: var(--md-sys-color-surface-container-highest); outline: none; font-size: 17px; box-shadow: inset 0 -1px 0 var(--md-sys-color-on-surface-variant); transition: box-shadow 150ms; }
+.field input:focus { box-shadow: inset 0 -3px 0 var(--md-sys-color-primary); }
+.field label { position: absolute; left: 16px; top: 8px; font-size: 12px; font-weight: 600; color: var(--md-sys-color-primary); pointer-events: none; }
+.field .help { margin: 6px 16px 0; font-size: 12px; color: var(--md-sys-color-on-surface-variant); min-height: 16px; }
+.field .help.err { color: var(--md-sys-color-error, #ba1a1a); }
+.towns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.tchip { height: 32px; padding: 0 12px; border-radius: var(--r-s); border: 1px solid var(--md-sys-color-outline-variant); background: transparent; color: var(--md-sys-color-on-surface-variant); font-size: 13px; font-weight: 600;
+  transition: border-radius var(--spring-fast-ms) var(--spring-fast), background-color var(--effects-ms); }
+.tchip:hover { background: color-mix(in srgb, var(--md-sys-color-on-surface) 8%, transparent); }
+.tchip:active { border-radius: var(--r-full); }
+.picker-label { margin: 26px 0 12px; display: flex; justify-content: space-between; align-items: baseline; }
+.picker { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.opt { border: 0; background: var(--md-sys-color-surface-container); border-radius: var(--r-xl); padding: 14px 6px 12px; display: grid; justify-items: center; gap: 8px; color: var(--md-sys-color-on-surface-variant); font-weight: 600; font-size: 14px;
+  transition: background-color var(--effects-ms), border-radius var(--spring-default-ms) var(--spring-default), color var(--effects-ms); }
+.opt .glyph { width: 60px; height: 60px; background: var(--md-sys-color-surface-container-highest); color: var(--md-sys-color-on-surface-variant); }
+.opt .glyph .sym { font-size: 28px; transition: transform var(--spring-default-ms) var(--spring-default), font-variation-settings 200ms; }
+.opt:hover { background: var(--md-sys-color-surface-container-high); }
+.opt[aria-checked="true"] { background: var(--c-sch); color: var(--c-p); border-radius: var(--r-xxl); }
+.opt[aria-checked="true"] .glyph { background: var(--c-pc); color: var(--c-opc); }
+.opt[aria-checked="true"] .glyph .sym { font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 40; transform: scale(1.1); }
+.btn { height: 52px; padding: 0 24px; border: 0; border-radius: var(--r-full); display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px; font-weight: 700; font-variation-settings: 'ROND' 100;
+  transition: border-radius var(--spring-fast-ms) var(--spring-fast), background-color var(--effects-ms), opacity 150ms; }
+.btn:active { border-radius: var(--r-l); }
+.btn.filled { background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); }
+.btn.text { background: transparent; color: var(--md-sys-color-primary); padding: 0 16px; }
+.btn.text:hover { background: color-mix(in srgb, var(--md-sys-color-primary) 8%, transparent); }
+.btn:disabled { opacity: .6; cursor: progress; }
+
+/* ── Snackbar ───────────────────────────────────────────────────────────── */
+.snack { position: fixed; left: 50%; bottom: 28px; z-index: 50; transform: translate(-50%, calc(100% + 48px)); visibility: hidden; transition: transform var(--spring-default-ms) var(--spring-default), visibility 0s linear var(--spring-default-ms); min-width: 288px; max-width: min(560px, calc(100vw - 32px)); padding: 14px 16px 14px 20px; border-radius: var(--r-l);
+  background: var(--md-sys-color-inverse-surface); color: var(--md-sys-color-inverse-on-surface); display: flex; align-items: center; gap: 12px; font-size: 14px; box-shadow: 0 6px 20px rgb(0 0 0 / .25); }
+.snack.show { transform: translate(-50%, 0); visibility: visible; transition: transform var(--spring-default-ms) var(--spring-default), visibility 0s; }
+.snack .sym { font-size: 20px; }
+.snack b { font-family: var(--mono); font-weight: 600; }
+
+footer.page { grid-column: 1 / -1; color: var(--md-sys-color-on-surface-variant); font-size: 13px; line-height: 20px; padding: 8px 8px 0; }
+footer.page code { font-family: var(--mono); font-size: 12px; padding: 1px 6px; border-radius: 6px; background: var(--md-sys-color-surface-container-high); }
+
+/* ── Responsive (M3 window classes) ─────────────────────────────────────── */
+@media (max-width: 1199px) {
+  main { grid-template-columns: minmax(0, 1fr); }
+  .col-side { position: static; }
+  .glance { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 839px) {
+  .appbar { position: relative; }
+  .appbar-inner { padding: 12px 16px; gap: 10px; }
+  .brand { flex: 1; }
+  #themeBtn { order: 1; }
+  .bgroup { order: 2; }
+  .search { order: 5; flex: 1 1 100%; min-width: 0; }
+  .urlfield.open { order: 6; max-width: 100%; flex: 1 1 100%; }
+  .urlfield input { width: 100%; }
+  main { padding: 4px 16px 120px; }
+  .hero { grid-template-columns: 1fr; padding: 28px 24px; border-radius: var(--r-xl-inc); min-height: 0; }
+  .hero-art { position: absolute; right: -40px; top: -30px; width: 200px; opacity: .9; }
+  .hero h1, .hero .where, .hero .meta, .hero .eyebrow { position: relative; }
+  .glance { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .section { padding: 18px 14px; border-radius: var(--r-xl-inc); }
+  .sheet { top: auto; left: 0; right: 0; bottom: 0; width: 100%; max-height: 92vh; border-radius: var(--r-xl-inc) var(--r-xl-inc) 0 0; transform: translateY(105%); }
+  .sheet::before { content: ''; width: 32px; height: 4px; border-radius: 2px; background: var(--md-sys-color-outline); opacity: .5; margin: 10px auto 0; }
+  .fab { right: 16px; bottom: 16px; height: 64px; }
+}
+@media (max-width: 520px) {
+  .brand small { display: none; }
+  .fab .label { display: none; }
+  .fab { width: 64px; padding: 0; justify-content: center; }
+  .glance .tile { min-height: 140px; }
+  .tile .num { font-size: 42px; }
+  .glance .t-recent .num { font-size: 26px; }
+  .sheet footer .route { display: none; }
+  .sheet footer { justify-content: flex-end; }
+}
+/* no transitions until the first theme has painted, so the page never fades in from fallback colours */
+html:not(.ready) *, html:not(.ready) *::before, html:not(.ready) *::after { transition: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
+}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
+
+<header class="appbar">
+  <div class="appbar-inner">
     <div class="brand">
-      <div class="logo">⛅</div>
-      <div>
-        <h1>Weather Board</h1>
-        <div class="sub">A serverless CRUDL API · AWS SAM · API Gateway · Lambda · DynamoDB</div>
-      </div>
+      <div class="glyph shape" id="brandShape"><span class="sym fill">sunny</span></div>
+      <div><div class="title-l">Weather Board</div><small>Serverless CRUDL API · AWS SAM</small></div>
     </div>
-    <div class="conn" title="Where requests are sent">
-      <span class="dot" id="dot"></span>
-      <div class="seg" role="tablist">
-        <button id="modeDemo" class="on">Demo</button>
-        <button id="modeLive">Live API</button>
-      </div>
+    <form class="search" id="searchForm" role="search">
+      <span class="sym muted">search</span>
+      <input id="lookupId" placeholder="Find a reading by id" spellcheck="false" autocomplete="off" aria-label="Find a reading by id">
+      <button class="icon-btn sm" type="submit" aria-label="Look up"><span class="sym">arrow_forward</span></button>
+    </form>
+    <div class="bgroup" role="group" aria-label="Where requests go">
+      <button id="modeDemo" type="button" aria-pressed="true"><span class="sym">science</span>Demo</button>
+      <button id="modeLive" type="button" aria-pressed="false"><span class="sym">sensors</span>Live API</button>
+    </div>
+    <label class="urlfield" id="urlField">
+      <span class="status-dot" id="dot"></span>
       <input id="apiUrl" type="url" placeholder="https://xxxx.execute-api.region.amazonaws.com/dev" spellcheck="false" aria-label="API base URL">
-    </div>
-  </header>
+    </label>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="Toggle dark mode"><span class="sym">dark_mode</span></button>
+  </div>
+  <div class="wavy" id="wavy" aria-hidden="true"><svg viewBox="0 0 1240 6" preserveAspectRatio="none"><path id="wavePath"/></svg></div>
+</header>
 
-  <div class="grid">
-    <div class="stack">
-      <section class="card">
-        <h2 id="formTitle">Add a reading <span id="cancelEdit" hidden><button class="btn small ghost" id="cancelBtn">Cancel</button></span></h2>
-        <label for="town">Town</label>
-        <input type="text" id="town" list="towns" placeholder="e.g. Buea" maxlength="60">
-        <datalist id="towns"></datalist>
-        <label>Weather</label>
-        <div class="chips" id="chips"></div>
-        <button class="btn primary" id="submit">Create · POST /create-weather</button>
-        <div class="msg" id="formMsg"></div>
-      </section>
-
-      <section class="card">
-        <h2>Find by id</h2>
-        <div class="row">
-          <input type="text" id="lookupId" placeholder="paste an id" spellcheck="false">
-          <button class="btn ghost" id="lookupBtn">GET</button>
-        </div>
-        <div class="msg" id="lookupMsg"></div>
-      </section>
-    </div>
-
-    <div class="stack">
-      <section class="card">
-        <h2>Under the hood <span class="sub" id="lastCall">make a request to light up the path</span></h2>
-        <div class="flow">
-          <div class="node" id="nClient"><div class="em">🖥️</div><b>Client</b><span id="nClientTxt">this page</span></div>
-          <div class="node" id="nApi"><div class="em">🚪</div><b>API Gateway</b><span id="nApiTxt">WeatherApi · dev</span></div>
-          <div class="node" id="nFn"><div class="em">λ</div><b>Lambda</b><span id="nFnTxt">—</span></div>
-          <div class="node" id="nDb"><div class="em">🗄️</div><b>DynamoDB</b><span id="nDbTxt">WeatherTable</span></div>
-        </div>
-        <div class="log" id="log"><div style="color:var(--muted)">request log is empty</div></div>
-      </section>
-
-      <section class="card">
-        <h2>Readings <span><button class="btn small ghost" id="refresh">↻ GET /weathers</button></span></h2>
-        <div class="items" id="items"></div>
-      </section>
-    </div>
+<main>
+  <div class="col-main">
+    <section class="hero" id="hero" aria-live="polite"></section>
+    <section class="glance" id="glance" aria-label="At a glance"></section>
+    <section class="section" aria-labelledby="readingsTitle">
+      <div class="section-head">
+        <h2 class="headline-m" id="readingsTitle">Readings</h2>
+        <span class="count" id="count">0</span>
+        <span style="flex:1"></span>
+        <button class="icon-btn tonal sm" id="refreshBtn" type="button" aria-label="Refresh (GET /weathers)" title="GET /weathers"><span class="sym">refresh</span></button>
+      </div>
+      <div class="filters" id="filters" role="toolbar" aria-label="Filter by condition"></div>
+      <div class="cards" id="cards"></div>
+    </section>
   </div>
 
-  <footer>
+  <aside class="col-side">
+    <section class="hood" aria-labelledby="hoodTitle">
+      <h2 class="title-l" id="hoodTitle">Under the hood</h2>
+      <div class="body-m muted">Every click is a real HTTP request through the same path as the deployed API.</div>
+      <ol class="steps" id="steps">
+        <li class="step" data-n="0"><div class="glyph shape"><span class="sym">devices</span></div><div><div class="t">Client</div><div class="d" id="s0">this page</div></div></li>
+        <li class="step" data-n="1"><div class="glyph shape"><span class="sym">door_front</span></div><div><div class="t">API Gateway</div><div class="d" id="s1">WeatherApi · stage dev</div></div></li>
+        <li class="step" data-n="2"><div class="glyph shape"><b>λ</b></div><div><div class="t">Lambda</div><div class="d" id="s2">waiting for a request</div></div></li>
+        <li class="step" data-n="3"><div class="glyph shape"><span class="sym">database</span></div><div><div class="t">DynamoDB</div><div class="d" id="s3">WeatherTable</div></div></li>
+      </ol>
+      <div class="lastcall" id="lastCall"><span class="sym muted">history</span><span class="muted">No requests yet</span></div>
+      <div class="log" id="log"></div>
+      <details class="resp" id="resp" hidden><summary><span class="sym" style="font-size:20px">api</span>Last response body</summary><pre id="respBody"></pre></details>
+    </section>
+  </aside>
+
+  <footer class="page">
     Built while learning <b>Building a Serverless REST API With AWS SAM and Python</b> on Educloud Academy.
-    Demo mode runs a copy of the API inside your browser. Switch to <b>Live API</b> and paste the <code>WeatherApiUrl</code> from <code>sam deploy</code>,
+    <b>Demo</b> runs a copy of the API inside your browser. For <b>Live API</b>, paste the <code>WeatherApiUrl</code> output from <code>sam deploy</code>,
     or run <code>uv run python scripts/local_api.py</code> and use <code>http://localhost:3000/dev</code>.
   </footer>
-</div>
+</main>
+
+<button class="fab" id="fab" type="button"><span class="sym">add</span><span class="label">New reading</span></button>
+
+<div class="scrim" id="scrim"></div>
+<aside class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" aria-hidden="true">
+  <header>
+    <h2 class="headline-m" id="sheetTitle">New reading</h2>
+    <button class="icon-btn" id="closeSheet" type="button" aria-label="Close"><span class="sym">close</span></button>
+  </header>
+  <form class="body" id="readingForm" novalidate>
+    <div class="field">
+      <label for="town">Town</label>
+      <input id="town" maxlength="60" autocomplete="off" placeholder=" ">
+      <div class="help" id="townHelp">Where was this reading taken?</div>
+    </div>
+    <div class="towns" id="townChips"></div>
+    <div class="picker-label"><span class="title-m">Condition</span><span class="label-m muted" id="pickedName"></span></div>
+    <div class="picker" id="picker" role="radiogroup" aria-label="Condition"></div>
+  </form>
+  <footer>
+    <span class="route" id="sheetRoute">POST /create-weather</span>
+    <button class="btn text" type="button" id="cancelSheet">Cancel</button>
+    <button class="btn filled" type="submit" form="readingForm" id="saveBtn"><span class="sym">check</span><span id="saveLabel">Create</span></button>
+  </footer>
+</aside>
+
+<div class="snack" id="snack" role="status" aria-live="polite"><span class="sym" id="snackIcon">check</span><span id="snackText"></span></div>
 
 <script>
-const WEATHERS = [
-  ['Sunny', '☀️'], ['Cloudy', '☁️'], ['Rainy', '🌧️'], ['Stormy', '⛈️'],
-  ['Cold', '🥶'], ['HOT', '🔥'], ['Windy', '🌬️'], ['Foggy', '🌫️'], ['Drizzle', '🌦️'],
-];
-const TOWNS = ['Buea', 'Douala', 'Yaoundé', 'Limbe', 'Bamenda', 'Kribi', 'Bafoussam', 'Garoua', 'Maroua', 'Ngaoundéré', 'Bertoua', 'Ebolowa', 'Kumba', 'Dschang'];
-const ROUTE_TO_FN = {
-  'POST /create-weather': ['CreateWeatherLambda', 'Write'],
-  'GET /weathers': ['GetAllWeatherLambda', 'Read · scan'],
-  'GET /weather/{id}': ['GetWeatherLambda', 'Read · get_item'],
-  'PUT /weather/{id}': ['UpdateWeatherLambda', 'Write · update_item'],
-  'DELETE /weather/{id}': ['DeleteWeatherLambda', 'Write · delete_item'],
-};
+'use strict';
 const $ = id => document.getElementById(id);
 const store = {
   get(k, d) { try { return localStorage.getItem(k) ?? d; } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, v); } catch {} },
 };
 
-// ── Demo mode: the same five handlers, re-implemented in the browser ─────────
-const demoTable = new Map();
-function seedDemo() {
-  const now = Date.now();
-  [['Buea', 'Rainy'], ['Douala', 'HOT'], ['Yaoundé', 'Cloudy'], ['Limbe', 'Sunny']].forEach(([town, weather], i) => {
-    const t = new Date(now - (i + 1) * 3600e3).toISOString().slice(0, 19) + '+00:00';
-    const id = crypto.randomUUID();
-    demoTable.set(id, { id, weather, town, createdAt: t, updatedAt: t });
-  });
+/* ── Conditions: icon, M3 shape, palette ───────────────────────────────── */
+const CONDITIONS = [
+  { key: 'sunny',   label: 'Sunny',   icon: 'sunny',                 shape: 'sunny' },
+  { key: 'hot',     label: 'HOT',     icon: 'local_fire_department', shape: 'verySunny' },
+  { key: 'cloudy',  label: 'Cloudy',  icon: 'cloud',                 shape: 'puffy' },
+  { key: 'drizzle', label: 'Drizzle', icon: 'rainy_light',           shape: 'softBurst' },
+  { key: 'rainy',   label: 'Rainy',   icon: 'rainy',                 shape: 'cookie12' },
+  { key: 'stormy',  label: 'Stormy',  icon: 'thunderstorm',          shape: 'burst' },
+  { key: 'cold',    label: 'Cold',    icon: 'ac_unit',               shape: 'flower' },
+  { key: 'windy',   label: 'Windy',   icon: 'air',                   shape: 'clover' },
+  { key: 'foggy',   label: 'Foggy',   icon: 'foggy',                 shape: 'pill' },
+];
+const OTHER = { key: 'board', label: 'Other', icon: 'device_thermostat', shape: 'cookie9' };
+const conditionOf = w => CONDITIONS.find(c => c.label.toLowerCase() === String(w || '').trim().toLowerCase()) || OTHER;
+const TOWNS = ['Buea', 'Douala', 'Yaoundé', 'Limbe', 'Bamenda', 'Kribi', 'Bafoussam', 'Garoua', 'Kumba', 'Dschang'];
+
+/* ── M3 shapes as same-length polygons, so clip-path can morph between any two ── */
+const N = 120;
+const SHAPES = (() => {
+  const polar = f => { // f(theta) -> radius; normalised so the biggest radius touches the box
+    const pts = []; let max = 0;
+    for (let i = 0; i < N; i++) { const t = -Math.PI / 2 + i * 2 * Math.PI / N; const r = f(t); max = Math.max(max, r); pts.push([t, r]); }
+    return 'polygon(' + pts.map(([t, r]) => `${(50 + 50 * r / max * Math.cos(t)).toFixed(2)}% ${(50 + 50 * r / max * Math.sin(t)).toFixed(2)}%`).join(',') + ')';
+  };
+  const superellipse = (n, a = 1, b = 1) => t => Math.pow(Math.pow(Math.abs(Math.cos(t) / a), n) + Math.pow(Math.abs(Math.sin(t) / b), n), -1 / n);
+  const lobes = (k, depth, sharp = 1) => t => 1 - depth * Math.pow((1 - Math.cos(k * t)) / 2, sharp);
+  return {
+    circle: polar(() => 1),
+    square: polar(superellipse(5)),
+    cookie9: polar(lobes(9, .09, 1)),
+    cookie12: polar(lobes(12, .07, 1)),
+    softBurst: polar(lobes(10, .13, 1.4)),
+    sunny: polar(lobes(8, .16, 1.8)),
+    verySunny: polar(lobes(12, .2, 2.4)),
+    burst: polar(t => { const x = ((7 * (t + Math.PI / 2) / (2 * Math.PI)) % 1); return .74 + .26 * Math.abs(1 - 2 * x); }),
+    puffy: polar(t => .82 + .18 * Math.pow(Math.abs(Math.cos(3.5 * t)), .5)),
+    flower: polar(t => .62 + .38 * Math.pow(Math.abs(Math.cos(4 * t)), .9)),
+    clover: polar(t => .58 + .42 * Math.pow(Math.abs(Math.cos(2 * t + Math.PI / 4)), .7)),
+    pill: polar(superellipse(3.2, 1, .66)),
+    arch: polar(t => Math.sin(t) > 0 ? superellipse(4.5)(t) : 1),
+  };
+})();
+const setShape = (el, name) => { if (el) el.style.clipPath = SHAPES[name] || SHAPES.circle; };
+
+/* ── Springs: M3 Expressive spring values turned into CSS linear() easings ── */
+(function installSprings() {
+  if (!CSS.supports('transition-timing-function', 'linear(0, 1)')) return;
+  const spring = (stiffness, damping) => {
+    const w = Math.sqrt(stiffness), z = damping, dt = 1 / 240; let x = 0, v = 0, t = 0; const pts = [];
+    while (t < 3) {
+      v += (-stiffness * (x - 1) - 2 * z * w * v) * dt; x += v * dt; t += dt;
+      pts.push([t, x]); if (t > .1 && Math.abs(x - 1) < .002 && Math.abs(v) < .02) break;
+    }
+    const step = Math.max(1, Math.floor(pts.length / 48));
+    const sample = pts.filter((_, i) => i % step === 0); sample.push([t, 1]);
+    return { ms: Math.round(t * 1000), easing: 'linear(0, ' + sample.map(([pt, px]) => `${px.toFixed(4)} ${(pt / t * 100).toFixed(1)}%`).join(', ') + ')' };
+  };
+  const root = document.documentElement.style;
+  for (const [name, s, d] of [['fast', 800, .6], ['default', 380, .8], ['slow', 200, .8]]) {
+    const { ms, easing } = spring(s, d); root.setProperty(`--spring-${name}`, easing); root.setProperty(`--spring-${name}-ms`, ms + 'ms');
+  }
+})();
+
+/* ── Theme: dynamic colour from the latest reading + light/dark ─────────── */
+let themeKey = 'board';
+const media = matchMedia('(prefers-color-scheme: dark)');
+const params = new URLSearchParams(location.search);
+const modePref = () => params.get('theme') || store.get('wb-theme', 'system');
+const isDark = () => modePref() === 'dark' || (modePref() === 'system' && media.matches);
+function paletteFor(key) { return (window.PALETTES || {})[key]?.[isDark() ? 'dark' : 'light']; }
+function applyTheme(key = themeKey) {
+  themeKey = key;
+  const p = paletteFor(key); if (!p) return;
+  const root = document.documentElement;
+  root.dataset.mode = isDark() ? 'dark' : 'light';
+  for (const [role, hex] of Object.entries(p)) root.style.setProperty('--md-sys-color-' + role, hex);
+  $('themeBtn').firstElementChild.textContent = isDark() ? 'light_mode' : 'dark_mode';
+  document.querySelector('meta[name=theme-color]')?.setAttribute('content', p.surface);
 }
+function cardVars(key) {
+  const p = paletteFor(key); if (!p) return '';
+  return `--c-pc:${p['primary-container']};--c-opc:${p['on-primary-container']};--c-p:${p.primary};--c-sch:${p['surface-container-high']};--c-os:${p['on-surface']};--c-osv:${p['on-surface-variant']}`;
+}
+media.addEventListener('change', () => { applyTheme(); render(); });
+$('themeBtn').onclick = () => { store.set('wb-theme', isDark() ? 'light' : 'dark'); params.delete('theme'); applyTheme(); render(); };
+
+/* ── Demo mode: the five Lambda handlers re-implemented in the browser ──── */
+// crypto.randomUUID only exists in secure contexts (https, localhost, file); fall back elsewhere.
+const uuid = () => crypto.randomUUID ? crypto.randomUUID()
+  : '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
+const demoTable = new Map();
+(function seedDemo() {
+  const now = Date.now();
+  [['Buea', 'Rainy', 1], ['Douala', 'HOT', 3], ['Yaoundé', 'Cloudy', 5], ['Limbe', 'Sunny', 8], ['Bamenda', 'Cold', 26], ['Kribi', 'Windy', 30]].forEach(([town, weather, h]) => {
+    const t = new Date(now - h * 3600e3).toISOString().slice(0, 19) + '+00:00';
+    const id = uuid(); demoTable.set(id, { id, weather, town, createdAt: t, updatedAt: t });
+  });
+})();
 function validate(body) {
   let data; try { data = JSON.parse(body || ''); } catch { return [null, body ? 'Request body must be valid JSON' : 'Request body is required']; }
+  if (!data || typeof data !== 'object') return [null, 'Request body must be a JSON object'];
   for (const f of ['weather', 'town']) {
     if (typeof data[f] !== 'string' || !data[f].trim()) return [null, `'${f}' is required and must be a non-empty string`];
     if (data[f].trim().length > 60) return [null, `'${f}' must be at most 60 characters`];
@@ -199,12 +543,12 @@ function validate(body) {
   return [{ weather: data.weather.trim(), town: data.town.trim() }, null];
 }
 async function demoFetch(method, path, body) {
-  await new Promise(r => setTimeout(r, 60 + Math.random() * 120));
+  await new Promise(r => setTimeout(r, 180 + Math.random() * 260));
   const stamp = () => new Date().toISOString().slice(0, 19) + '+00:00';
   const m = path.match(/^\/weather\/([^/]+)$/); const id = m && decodeURIComponent(m[1]);
   if (method === 'POST' && path === '/create-weather') {
     const [d, err] = validate(body); if (err) return [400, { message: err }];
-    const item = { id: crypto.randomUUID(), ...d, createdAt: stamp(), updatedAt: stamp() };
+    const item = { id: uuid(), ...d, createdAt: stamp(), updatedAt: stamp() };
     demoTable.set(item.id, item); return [201, { message: 'Weather successfully created!', item }];
   }
   if (method === 'GET' && path === '/weathers') return [200, [...demoTable.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt))];
@@ -221,13 +565,21 @@ async function demoFetch(method, path, body) {
   return [403, { message: 'Missing Authentication Token' }];
 }
 
-// ── Talking to the API (demo or live) ────────────────────────────────────────
-let mode = store.get('wb-mode', 'demo');
+/* ── Talking to the API ────────────────────────────────────────────────── */
+const ROUTES = {
+  'POST /create-weather': ['CreateWeatherLambda', 'Write · put_item'],
+  'GET /weathers': ['GetAllWeatherLambda', 'Read · scan'],
+  'GET /weather/{id}': ['GetWeatherLambda', 'Read · get_item'],
+  'PUT /weather/{id}': ['UpdateWeatherLambda', 'Write · update_item'],
+  'DELETE /weather/{id}': ['DeleteWeatherLambda', 'Write · delete_item'],
+};
+let mode = params.get('mode') || store.get('wb-mode', 'demo');
+let inflight = 0;
 async function api(method, path, payload) {
   const body = payload === undefined ? undefined : JSON.stringify(payload);
   const route = `${method} ${path.replace(/^\/weather\/[^/]+$/, '/weather/{id}')}`;
-  const started = performance.now();
-  let status, data;
+  const started = performance.now(); let status, data;
+  inflight++; $('wavy').classList.add('on'); lightSteps(route);
   try {
     if (mode === 'demo') {
       [status, data] = await demoFetch(method, path, body);
@@ -237,129 +589,282 @@ async function api(method, path, payload) {
       const res = await fetch(base + path, { method, body, headers: body ? { 'Content-Type': 'application/json' } : {} });
       status = res.status; data = await res.json().catch(() => null);
     }
-    setDot(status < 500 ? 'ok' : 'err');
+    $('dot').className = 'status-dot ' + (status < 500 ? 'ok' : 'err');
   } catch (e) {
-    setDot('err'); status = 0; data = { message: e.message.includes('fetch') ? 'Network/CORS error: is the URL right and the API deployed?' : e.message };
+    $('dot').className = 'status-dot err'; status = 0;
+    data = { message: /fetch/i.test(e.message) ? 'Network or CORS error. Is the URL right and the API deployed?' : e.message };
+  } finally {
+    if (--inflight === 0) $('wavy').classList.remove('on');
   }
-  const ms = Math.round(performance.now() - started);
-  logCall(method, path, status, ms, route);
+  logCall(method, path, status, Math.round(performance.now() - started), route, data);
   return [status, data];
 }
 
-function setDot(state) { $('dot').className = 'dot ' + state; }
-function logCall(method, path, status, ms, route) {
-  const log = $('log'); if (log.dataset.used !== '1') { log.innerHTML = ''; log.dataset.used = '1'; }
-  const row = document.createElement('div');
-  const cls = status >= 500 || status === 0 ? 's5' : status >= 400 ? 's4' : 's2';
-  row.innerHTML = `<span class="m-${method}">${method}</span><span class="path"></span><span class="${cls}">${status || 'ERR'}</span><span>${ms} ms</span>`;
-  row.querySelector('.path').textContent = path;
-  log.prepend(row);
-  const [fn, access] = ROUTE_TO_FN[route] || ['—', '—'];
-  $('nClientTxt').textContent = mode === 'demo' ? 'demo (in browser)' : 'live';
-  $('nApiTxt').textContent = route;
-  $('nFnTxt').textContent = fn;
-  $('nDbTxt').textContent = 'WeatherTable · ' + access;
-  $('lastCall').textContent = `${route} → ${status || 'ERR'} in ${ms} ms`;
-  const nodes = ['nClient', 'nApi', 'nFn', 'nDb'];
-  nodes.forEach(n => $(n).classList.remove('lit'));
-  nodes.forEach((n, i) => setTimeout(() => $(n).classList.add('lit'), i * 140));
-  setTimeout(() => nodes.forEach(n => $(n).classList.remove('lit')), 2200);
+/* ── Under the hood ────────────────────────────────────────────────────── */
+const STEP_SHAPES = [['square', 'sunny'], ['arch', 'cookie9'], ['cookie12', 'burst'], ['pill', 'flower']];
+let stepTimers = [];
+function lightSteps(route) {
+  const [fn, access] = ROUTES[route] || ['Unknown route', '—'];
+  $('s0').textContent = mode === 'demo' ? 'demo · runs in this browser' : 'live · ' + ($('apiUrl').value.replace(/^https?:\/\//, '').split('/')[0] || '');
+  $('s1').textContent = route; $('s2').textContent = fn; $('s3').textContent = 'WeatherTable · ' + access;
+  stepTimers.forEach(clearTimeout); stepTimers = [];
+  const steps = [...document.querySelectorAll('.step')];
+  steps.forEach((s, i) => { s.classList.remove('lit'); setShape(s.querySelector('.glyph'), STEP_SHAPES[i][0]); });
+  steps.forEach((s, i) => stepTimers.push(setTimeout(() => { s.classList.add('lit'); setShape(s.querySelector('.glyph'), STEP_SHAPES[i][1]); }, i * 150)));
+  stepTimers.push(setTimeout(() => steps.forEach((s, i) => { s.classList.remove('lit'); setShape(s.querySelector('.glyph'), STEP_SHAPES[i][0]); }), 2600));
+}
+function logCall(method, path, status, ms, route, data) {
+  const cls = status === 0 ? 's0' : status >= 500 ? 's5' : status >= 400 ? 's4' : 's2';
+  $('lastCall').innerHTML = `<span class="method m-${method}">${method}</span><span class="mono" style="font-size:13px"></span><span class="st ${cls} mono">${status || 'ERR'}</span><span class="ms">${ms} ms</span>`;
+  $('lastCall').children[1].textContent = route.split(' ')[1];
+  const row = document.createElement('div'); row.className = 'logrow';
+  row.innerHTML = `<span class="method m-${method}">${method}</span><span class="path"></span><span class="st ${cls}">${status || 'ERR'}</span><span class="muted">${ms}ms</span>`;
+  row.querySelector('.path').textContent = path; row.title = path;
+  $('log').prepend(row); while ($('log').children.length > 30) $('log').lastChild.remove();
+  $('resp').hidden = false; $('respBody').textContent = JSON.stringify(data, null, 2);
 }
 
-// ── UI ───────────────────────────────────────────────────────────────────────
-let selected = 'Rainy', editingId = null, items = [];
-const iconFor = w => (WEATHERS.find(([n]) => n.toLowerCase() === String(w).toLowerCase()) || [, '🌡️'])[1];
-
-function renderChips() {
-  $('chips').innerHTML = '';
-  WEATHERS.forEach(([name, icon]) => {
-    const b = document.createElement('button');
-    b.className = 'chip' + (name === selected ? ' on' : ''); b.textContent = `${icon} ${name}`;
-    b.onclick = () => { selected = name; renderChips(); };
-    $('chips').append(b);
-  });
+/* ── Rendering ─────────────────────────────────────────────────────────── */
+let items = [], filter = 'all', loading = true, editingId = null, flashId = null;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const parseTime = s => new Date(String(s || '').replace(/\+00:00$/, 'Z'));
+function ago(s) {
+  const d = (Date.now() - parseTime(s)) / 1000; if (!isFinite(d)) return '—';
+  if (d < 45) return 'just now'; if (d < 3600) return Math.round(d / 60) + ' min ago';
+  if (d < 86400) return Math.round(d / 3600) + ' h ago'; return Math.round(d / 86400) + ' d ago';
 }
-function renderItems(flashId) {
-  const box = $('items'); box.innerHTML = '';
-  if (!items.length) { box.innerHTML = '<div class="empty">No readings yet. Add one on the left.</div>'; return; }
-  items.forEach(it => {
-    const el = document.createElement('div'); el.className = 'w' + (it.id === flashId ? ' flash' : '');
-    el.innerHTML = `<div class="icon"></div><div class="town"></div><div class="cond"></div>
-      <div class="meta"></div>
-      <div class="actions"><button class="btn small ghost" data-a="edit">Edit · PUT</button><button class="btn small ghost danger" data-a="del">Delete</button></div>`;
-    el.querySelector('.icon').textContent = iconFor(it.weather);
+const fmt = s => { const t = parseTime(s); return isFinite(t) ? t.toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'; };
+const sentence = c => c.key === 'board' ? 'It’s <span class="cond"></span>' : ({ cold: 'It’s cold', hot: 'It’s HOT', windy: 'It’s windy', foggy: 'It’s foggy', stormy: 'It’s stormy', drizzle: 'It’s drizzling' }[c.key] || 'It’s ' + c.label.toLowerCase());
+
+function renderHero() {
+  const hero = $('hero'); const latest = items[0];
+  if (!latest) {
+    hero.className = 'hero empty';
+    hero.innerHTML = `<div><span class="eyebrow"><span class="sym">${loading ? 'refresh' : 'add'}</span>${loading ? 'Loading readings' : 'No readings yet'}</span>
+      <h1 class="display-hero">${loading ? 'One moment' : 'Add the first reading'}</h1>
+      <div class="where display-s">${loading ? 'asking GET /weathers…' : 'with the button below'}</div></div>
+      <div class="hero-art"><div class="back shape"></div><div class="front shape"><span class="sym">${loading ? 'refresh' : 'sunny'}</span></div></div>`;
+    setShape(hero.querySelector('.back'), 'cookie9'); setShape(hero.querySelector('.front'), loading ? 'cookie12' : 'circle');
+    return;
+  }
+  const c = conditionOf(latest.weather);
+  const art = hero.querySelector('.hero-art .front');
+  if (!art || hero.classList.contains('empty')) {
+    hero.className = 'hero';
+    hero.innerHTML = `<div class="copy"><span class="eyebrow"><span class="sym">history</span><span class="ew"></span></span>
+      <h1 class="display-hero"></h1><div class="where display-s"><span class="sym">location_on</span><span class="town"></span></div>
+      <div class="meta"><button class="chip" type="button" data-act="edit"><span class="sym">edit</span>Edit</button><button class="chip mono idchip" type="button" title="Copy id"><span class="sym">content_copy</span><span class="idt"></span></button><span class="chip when"></span></div></div>
+      <div class="hero-art"><div class="back shape"></div><div class="front shape"><span class="sym"></span></div></div>`;
+    setShape(hero.querySelector('.back'), 'circle'); setShape(hero.querySelector('.front'), 'circle');
+  }
+  hero.querySelector('.ew').textContent = 'Latest reading · ' + ago(latest.updatedAt || latest.createdAt);
+  hero.querySelector('h1').innerHTML = sentence(c);
+  if (c.key === 'board') hero.querySelector('h1 .cond').textContent = latest.weather.toLowerCase();
+  hero.querySelector('.town').textContent = 'in ' + latest.town;
+  hero.querySelector('.idt').textContent = latest.id.slice(0, 8);
+  hero.querySelector('.when').textContent = 'Created ' + fmt(latest.createdAt);
+  hero.querySelector('[data-act=edit]').onclick = () => openSheet(latest);
+  hero.querySelector('.idchip').onclick = () => copyId(latest.id);
+  const front = hero.querySelector('.front'), back = hero.querySelector('.back');
+  front.querySelector('.sym').textContent = c.icon;
+  requestAnimationFrame(() => { setShape(front, c.shape); setShape(back, c.shape === 'cookie9' ? 'sunny' : 'cookie9'); });
+}
+
+function renderGlance() {
+  const towns = new Set(items.map(i => i.town.toLowerCase())).size;
+  const counts = {}; items.forEach(i => { const k = conditionOf(i.weather).key; counts[k] = (counts[k] || 0) + 1; });
+  const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+  const tc = top ? (CONDITIONS.find(c => c.key === top[0]) || OTHER) : null;
+  const latest = items[0];
+  $('glance').innerHTML = `
+    <div class="tile t-count"><span class="label-m">Readings</span><div><div class="num">${items.length}</div><div class="sub">in WeatherTable</div></div></div>
+    <div class="tile t-towns"><span class="label-m">Towns</span><div><div class="num">${towns}</div><div class="sub">covered</div></div></div>
+    <div class="tile t-common"><span class="label-m">Most common</span><div style="display:flex;align-items:center;gap:12px">
+      <div class="glyph shape" style="${tc ? cardVars(tc.key) : ''}"><span class="sym fill">${tc ? tc.icon : 'device_thermostat'}</span></div>
+      <div><div class="title-m">${tc ? esc(tc.label) : '—'}</div><div class="sub muted">${top ? top[1] + ' of ' + items.length : 'no data'}</div></div></div></div>
+    <div class="tile t-recent"><span class="label-m">Last update</span><div><div class="num">${latest ? esc(ago(latest.updatedAt || latest.createdAt)) : '—'}</div><div class="sub">${latest ? esc(latest.town) : ''}</div></div></div>`;
+  setShape($('glance').querySelector('.t-common .glyph'), tc ? tc.shape : 'circle');
+}
+
+function renderFilters() {
+  const counts = {}; items.forEach(i => { const k = conditionOf(i.weather).key; counts[k] = (counts[k] || 0) + 1; });
+  const present = [...CONDITIONS, OTHER].filter(c => counts[c.key]);
+  if (filter !== 'all' && !counts[filter]) filter = 'all';
+  $('filters').innerHTML = [`<button class="fchip" data-k="all" aria-pressed="${filter === 'all'}">${filter === 'all' ? '<span class="sym">check</span>' : ''}All <span class="n">${items.length}</span></button>`]
+    .concat(present.map(c => `<button class="fchip" data-k="${c.key}" aria-pressed="${filter === c.key}"><span class="sym ${filter === c.key ? 'fill' : ''}">${filter === c.key ? 'check' : c.icon}</span>${esc(c.label)} <span class="n">${counts[c.key]}</span></button>`)).join('');
+  $('filters').querySelectorAll('.fchip').forEach(b => b.onclick = () => { filter = b.dataset.k; renderFilters(); renderCards(); });
+}
+
+function renderCards() {
+  const box = $('cards');
+  const shown = items.filter(i => filter === 'all' || conditionOf(i.weather).key === filter);
+  $('count').textContent = shown.length === items.length ? items.length : `${shown.length} of ${items.length}`;
+  if (loading && !items.length) { box.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="loader"><i class="shape"></i></div><div>Loading readings…</div></div>`; startLoader(box.querySelector('.loader i')); return; }
+  if (!shown.length) {
+    box.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="glyph shape"><span class="sym fill">cloud</span></div><div class="title-l" style="color:var(--md-sys-color-on-surface)">Nothing here yet</div><div class="body-m">Add a reading and it will appear here. It goes through POST /create-weather.</div></div>`;
+    setShape(box.querySelector('.glyph'), 'puffy'); return;
+  }
+  box.innerHTML = '';
+  shown.forEach(it => {
+    const c = conditionOf(it.weather);
+    const el = document.createElement('article');
+    el.className = 'card' + (it.id === editingId ? ' editing' : '') + (it.id === flashId ? ' flash' : '');
+    el.setAttribute('style', cardVars(c.key));
+    el.innerHTML = `<div class="glyph shape"><span class="sym">${c.icon}</span></div>
+      <div><div class="town"></div><div class="cond"></div><div class="when"></div></div>
+      <div class="foot">
+        <button class="id" type="button" title="Copy id"><span class="sym">content_copy</span><span></span></button>
+        <button class="icon-btn sm" type="button" data-a="edit" aria-label="Edit"><span class="sym">edit</span></button>
+        <button class="icon-btn sm" type="button" data-a="del" aria-label="Delete"><span class="sym">delete</span></button></div>`;
     el.querySelector('.town').textContent = it.town;
     el.querySelector('.cond').textContent = it.weather;
-    el.querySelector('.meta').textContent = `id ${String(it.id).slice(0, 8)}…\nupdated ${(it.updatedAt || it.createdAt || '').replace('T', ' ').slice(0, 16)} UTC`;
-    el.querySelector('.meta').title = it.id;
-    el.querySelector('[data-a=edit]').onclick = () => startEdit(it);
+    el.querySelector('.when').textContent = (it.updatedAt && it.updatedAt !== it.createdAt ? 'Updated ' : 'Created ') + ago(it.updatedAt || it.createdAt);
+    el.querySelector('.when').title = 'Created ' + fmt(it.createdAt) + '\nUpdated ' + fmt(it.updatedAt);
+    el.querySelector('.id span:last-child').textContent = it.id.slice(0, 8);
+    el.querySelector('.id').onclick = () => copyId(it.id);
+    el.querySelector('[data-a=edit]').onclick = () => openSheet(it);
     el.querySelector('[data-a=del]').onclick = () => remove(it);
+    setShape(el.querySelector('.glyph'), c.shape);
     box.append(el);
   });
+  flashId = null;
 }
-async function refresh(flashId) {
+
+function render() {
+  const latest = items[0];
+  applyTheme(latest ? conditionOf(latest.weather).key : 'board');
+  setShape($('brandShape'), latest ? conditionOf(latest.weather).shape : 'sunny');
+  $('brandShape').firstElementChild.textContent = latest ? conditionOf(latest.weather).icon : 'sunny';
+  renderHero(); renderGlance(); renderFilters(); renderCards();
+}
+
+/* loading indicator: cycle through shapes like M3 Expressive's loading indicator */
+const LOADER_SEQ = ['cookie9', 'sunny', 'pill', 'burst', 'flower', 'cookie12', 'clover'];
+function startLoader(el) {
+  if (!el) return; let i = 0; setShape(el, LOADER_SEQ[0]);
+  const tick = () => { if (!el.isConnected) return; i = (i + 1) % LOADER_SEQ.length; setShape(el, LOADER_SEQ[i]); setTimeout(tick, 420); };
+  setTimeout(tick, 420);
+}
+
+/* ── Actions ───────────────────────────────────────────────────────────── */
+async function refresh() {
   const [status, data] = await api('GET', '/weathers');
-  if (status === 200 && Array.isArray(data)) { items = data; renderItems(flashId); }
-}
-function startEdit(it) {
-  editingId = it.id; $('town').value = it.town;
-  selected = WEATHERS.find(([n]) => n.toLowerCase() === it.weather.toLowerCase())?.[0] || selected; renderChips();
-  $('formTitle').firstChild.textContent = 'Edit reading ';
-  $('cancelEdit').hidden = false;
-  $('submit').textContent = `Update · PUT /weather/${it.id.slice(0, 8)}…`;
-  $('town').focus();
-}
-function stopEdit() {
-  editingId = null; $('formTitle').firstChild.textContent = 'Add a reading ';
-  $('cancelEdit').hidden = true; $('submit').textContent = 'Create · POST /create-weather'; $('town').value = '';
-}
-async function submit() {
-  const payload = { weather: selected, town: $('town').value };
-  $('submit').disabled = true;
-  const [status, data] = editingId
-    ? await api('PUT', `/weather/${encodeURIComponent(editingId)}`, payload)
-    : await api('POST', '/create-weather', payload);
-  $('submit').disabled = false;
-  const msg = $('formMsg');
-  if (status === 200 || status === 201) {
-    const id = editingId || data.item?.id;
-    msg.className = 'msg ok'; msg.textContent = status === 201 ? `${status} Created` : `${status} Updated`;
-    stopEdit(); refresh(id);
-  } else {
-    msg.className = 'msg err'; msg.textContent = `${status || 'ERR'} · ${data?.message || 'Something went wrong'}`;
-  }
+  loading = false;
+  if (status === 200 && Array.isArray(data)) items = data;
+  else snack(`${status || 'ERR'} · ${data?.message || 'Could not load readings'}`, 'error');
+  render();
 }
 async function remove(it) {
   const [status, data] = await api('DELETE', `/weather/${encodeURIComponent(it.id)}`);
-  if (status === 200) { if (editingId === it.id) stopEdit(); refresh(); }
-  else { $('formMsg').className = 'msg err'; $('formMsg').textContent = `${status} · ${data?.message}`; }
+  if (status === 200) { snack(`Deleted ${it.town} · <b>200</b>`, 'delete'); if (editingId === it.id) closeSheet(); await refresh(); }
+  else snack(`${status || 'ERR'} · ${data?.message || 'Delete failed'}`, 'error');
 }
-async function lookup() {
-  const id = $('lookupId').value.trim(); const msg = $('lookupMsg');
-  if (!id) { msg.className = 'msg err'; msg.textContent = 'Paste an id (hover a card\'s id to see it in full)'; return; }
+async function copyId(id) {
+  try { await navigator.clipboard.writeText(id); snack('Copied id <b>' + esc(id.slice(0, 8)) + '…</b>', 'content_copy'); }
+  catch { $('lookupId').value = id; snack('Id placed in the search box', 'content_copy'); }
+}
+$('searchForm').onsubmit = async e => {
+  e.preventDefault();
+  const id = $('lookupId').value.trim(); if (!id) { $('lookupId').focus(); return; }
   const [status, data] = await api('GET', `/weather/${encodeURIComponent(id)}`);
-  msg.className = 'msg ' + (status === 200 ? 'ok' : 'err');
-  msg.textContent = status === 200 ? `${status} · ${iconFor(data.weather)} ${data.weather} in ${data.town}` : `${status || 'ERR'} · ${data?.message}`;
+  if (status === 200) {
+    snack(`${esc(data.town)}: ${esc(data.weather)} · <b>200</b>`, conditionOf(data.weather).icon);
+    if (!items.some(i => i.id === data.id)) { items.unshift(data); }
+    filter = 'all'; flashId = data.id; render();
+    document.querySelector('.card.flash')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } else snack(`${status || 'ERR'} · ${esc(data?.message || 'Not found')}`, 'error');
+};
+
+/* ── Sheet (create / edit) ─────────────────────────────────────────────── */
+let selected = 'Rainy';
+function renderPicker() {
+  $('picker').innerHTML = CONDITIONS.map(c => `<button type="button" class="opt" role="radio" aria-checked="${c.label === selected}" data-l="${c.label}" style="${cardVars(c.key)}"><div class="glyph shape"><span class="sym">${c.icon}</span></div>${esc(c.label)}</button>`).join('');
+  $('picker').querySelectorAll('.opt').forEach(b => {
+    setShape(b.querySelector('.glyph'), b.dataset.l === selected ? conditionOf(b.dataset.l).shape : 'circle');
+    b.onclick = () => selectCondition(b.dataset.l);
+  });
+  $('pickedName').textContent = selected;
 }
-function setMode(m) {
-  mode = m; store.set('wb-mode', m);
-  $('modeDemo').classList.toggle('on', m === 'demo'); $('modeLive').classList.toggle('on', m === 'live');
-  $('apiUrl').disabled = m === 'demo'; $('apiUrl').style.opacity = m === 'demo' ? .45 : 1;
-  setDot(''); refresh();
+function selectCondition(label) {
+  selected = label; $('pickedName').textContent = label;
+  $('picker').querySelectorAll('.opt').forEach(b => {
+    const on = b.dataset.l === label; b.setAttribute('aria-checked', on);
+    setShape(b.querySelector('.glyph'), on ? conditionOf(label).shape : 'circle');
+  });
+}
+$('townChips').innerHTML = TOWNS.map(t => `<button type="button" class="tchip">${t}</button>`).join('');
+$('townChips').querySelectorAll('.tchip').forEach(b => b.onclick = () => { $('town').value = b.textContent; $('townHelp').className = 'help'; $('townHelp').textContent = 'Where was this reading taken?'; });
+
+function openSheet(it) {
+  editingId = it ? it.id : null;
+  $('sheetTitle').textContent = it ? 'Edit reading' : 'New reading';
+  $('saveLabel').textContent = it ? 'Save' : 'Create';
+  $('sheetRoute').textContent = it ? `PUT /weather/${it.id.slice(0, 8)}…` : 'POST /create-weather';
+  $('town').value = it ? it.town : '';
+  selected = it ? (conditionOf(it.weather) === OTHER ? 'Rainy' : conditionOf(it.weather).label) : selected;
+  $('townHelp').className = 'help'; $('townHelp').textContent = 'Where was this reading taken?';
+  renderPicker(); renderCards();
+  $('sheet').classList.add('open'); $('scrim').classList.add('open'); $('sheet').setAttribute('aria-hidden', 'false');
+  setTimeout(() => $('town').focus(), 250);
+}
+function closeSheet() {
+  editingId = null; $('sheet').classList.remove('open'); $('scrim').classList.remove('open'); $('sheet').setAttribute('aria-hidden', 'true');
+  renderCards(); $('fab').focus({ preventScroll: true });
+}
+$('fab').onclick = () => openSheet(null);
+$('closeSheet').onclick = closeSheet; $('cancelSheet').onclick = closeSheet; $('scrim').onclick = closeSheet;
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('sheet').classList.contains('open')) closeSheet(); });
+
+$('readingForm').onsubmit = async e => {
+  e.preventDefault();
+  const town = $('town').value.trim();
+  if (!town) { $('townHelp').className = 'help err'; $('townHelp').textContent = 'Town is required'; $('town').focus(); return; }
+  const btn = $('saveBtn'); btn.disabled = true;
+  const icon = btn.firstElementChild; const holder = document.createElement('span'); holder.className = 'loader bare'; holder.innerHTML = '<i class="shape"></i>';
+  icon.replaceWith(holder); startLoader(holder.firstElementChild);
+  const payload = { weather: selected, town };
+  const [status, data] = editingId ? await api('PUT', `/weather/${encodeURIComponent(editingId)}`, payload) : await api('POST', '/create-weather', payload);
+  holder.replaceWith(icon); btn.disabled = false;
+  if (status === 200 || status === 201) {
+    flashId = editingId || data?.item?.id;
+    snack(status === 201 ? `Created ${esc(town)} · <b>201</b>` : `Updated ${esc(town)} · <b>200</b>`, 'check');
+    closeSheet(); filter = 'all'; await refresh();
+  } else {
+    $('townHelp').className = 'help err'; $('townHelp').textContent = `${status || 'ERR'} · ${data?.message || 'Something went wrong'}`;
+  }
+};
+
+/* ── Snackbar ──────────────────────────────────────────────────────────── */
+let snackTimer;
+function snack(html, icon = 'check') {
+  $('snackIcon').textContent = icon === 'error' ? 'close' : icon; $('snackText').innerHTML = html;
+  $('snack').classList.add('show'); clearTimeout(snackTimer); snackTimer = setTimeout(() => $('snack').classList.remove('show'), 3200);
 }
 
-$('towns').innerHTML = TOWNS.map(t => `<option value="${t}">`).join('');
-$('apiUrl').value = store.get('wb-url', '');
-$('apiUrl').addEventListener('change', e => { store.set('wb-url', e.target.value.trim()); if (mode === 'live') refresh(); });
+/* ── Mode switching ────────────────────────────────────────────────────── */
+function setMode(m) {
+  mode = m; store.set('wb-mode', m);
+  $('modeDemo').setAttribute('aria-pressed', m === 'demo'); $('modeLive').setAttribute('aria-pressed', m === 'live');
+  $('urlField').classList.toggle('open', m === 'live');
+  $('dot').className = 'status-dot';
+  loading = true; items = []; render(); refresh();
+}
+$('apiUrl').value = params.get('api') || store.get('wb-url', '');
+$('apiUrl').addEventListener('change', e => { store.set('wb-url', e.target.value.trim()); if (mode === 'live') { loading = true; items = []; render(); refresh(); } });
 $('modeDemo').onclick = () => setMode('demo');
 $('modeLive').onclick = () => setMode('live');
-$('submit').onclick = submit;
-$('cancelBtn').onclick = stopEdit;
-$('refresh').onclick = () => refresh();
-$('lookupBtn').onclick = lookup;
-$('town').addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
-$('lookupId').addEventListener('keydown', e => { if (e.key === 'Enter') lookup(); });
-seedDemo(); renderChips(); setMode(mode);
+$('refreshBtn').onclick = () => refresh();
+
+/* wavy progress path */
+(function () { let d = 'M0 3'; for (let x = 0; x <= 1240; x += 10) d += ` Q${x + 5} ${x % 20 ? 6 : 0} ${x + 10} 3`; $('wavePath').setAttribute('d', d); })();
+
+/* ── Start ─────────────────────────────────────────────────────────────── */
+STEP_SHAPES.forEach((s, i) => setShape(document.querySelectorAll('.step .glyph')[i], s[0]));
+applyTheme('board');
+setMode(mode === 'live' ? 'live' : 'demo');
+// ?capture keeps transitions off, for still screenshots (headless browsers don't advance CSS transitions)
+if (!params.has('capture')) requestAnimationFrame(() => requestAnimationFrame(() => document.documentElement.classList.add('ready')));
+if (params.has('sheet')) setTimeout(() => openSheet(params.get('sheet') === 'edit' ? items[0] : null), 900);
 </script>
 </body>
 </html>
