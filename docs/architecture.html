@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1600">
+<title>Weather Board · Serverless architecture</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght,ROND@6..144,100..1000,0..100&family=Google+Sans+Code:wght@400..700&display=block');
+:root{--surface:#faf8ff;--card:#ededf8;--low:#f2f3fd;--ink:#191b23;--muted:#424654;--primary:#0052c4;--blue:#2b6be4;--secondary:#b5c8fe;--secondary-ink:#405382;--warm:#bc5100;--line:#a4b5d8;--mono:'Google Sans Code',Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--surface);color:var(--ink);font-family:'Google Sans Flex',sans-serif;font-variation-settings:'ROND' 0}
+.canvas{position:relative;width:1600px;height:1080px;overflow:hidden;padding:52px 64px}
+.eyebrow{display:inline-flex;align-items:center;gap:12px;height:48px;padding:0 22px 0 16px;background:var(--secondary);color:var(--secondary-ink);border-radius:99px;font-size:21px;font-weight:650}
+.eyebrow svg{width:26px;height:26px}.meta{position:absolute;right:64px;top:60px;font:500 17px var(--mono);color:var(--muted)}
+h1{margin:29px 0 12px;font-size:72px;font-weight:760;letter-spacing:-2.8px;line-height:1.1;font-variation-settings:'ROND' 100,'opsz' 144}h1 span{color:var(--primary)}
+.intro{margin:0;color:var(--muted);font-size:25px;line-height:1.5}.intro code{font:500 21px var(--mono);background:#e7e7f2;padding:3px 10px;border-radius:9px}
+.lane{position:absolute;top:302px;font-size:17px;font-weight:650;letter-spacing:1.5px;color:var(--muted)}
+.node{position:absolute;background:var(--card);text-align:center;padding:28px 16px;display:flex;align-items:center;flex-direction:column}
+.client{left:64px;top:420px;width:212px;height:312px;border-radius:42px}
+.gateway{left:348px;top:400px;width:260px;height:352px;border-radius:130px 130px 38px 38px}
+.database{left:1282px;top:418px;width:254px;height:316px;border-radius:44px}
+.node h2{font-size:28px;letter-spacing:-.6px;margin:17px 0 8px;font-weight:700;font-variation-settings:'ROND' 100}
+.node p{font-size:21px;color:var(--muted);line-height:1.4;margin:0}.node code{font:17px var(--mono);color:var(--muted)}
+.badge{width:80px;height:80px;display:grid;place-items:center;flex:none;background:var(--primary);color:white;border-radius:50%}.badge svg{width:44px;height:44px}
+.gateway .badge{background:var(--secondary);color:var(--secondary-ink);border-radius:40px 40px 12px 12px}
+.database .badge{background:var(--warm);border-radius:28px}.database .badge svg{width:47px;height:47px}
+.tag{display:inline-flex;align-items:center;background:#e1e2ec;color:var(--muted);border-radius:30px;padding:6px 13px;font-size:16px;margin-top:16px}
+.functions{position:absolute;left:710px;top:346px;width:466px;display:grid;gap:12px}
+.fn{height:82px;background:var(--card);border-radius:25px;display:flex;align-items:center;padding:12px 16px;gap:16px}
+.lambda{width:52px;height:52px;flex:none;background:var(--blue);color:white;display:grid;place-items:center;font:bold 37px Georgia,serif}
+.fn-info{flex:1;min-width:0}.fn h3{font-size:22px;font-weight:680;margin:0 0 5px;letter-spacing:-.3px}.route{display:flex;align-items:center;gap:8px;white-space:nowrap;font:15px var(--mono);color:var(--muted)}
+.method{font:650 12px var(--mono);border-radius:8px;padding:4px 7px;background:#d4e4ff;color:#0052a8}.method.post{background:#c5edc6;color:#18592a}.method.put{background:#fedc95;color:#694f00}.method.delete{background:#ffdad6;color:#8f231c}
+.access{font-size:15px;font-weight:650;padding:8px 12px;border-radius:24px;background:#dce7ff;color:var(--primary)}.access.write{background:#ffdfcd;color:#914000}
+.links{position:absolute;inset:0;pointer-events:none}.links path{fill:none;stroke:var(--line);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}.links .active{stroke:var(--primary)}
+.direction{position:absolute;top:851px;left:710px;width:466px;text-align:center;font-size:17px;color:var(--muted)}
+.sam{position:absolute;left:64px;right:64px;top:916px;height:112px;display:flex;align-items:center;gap:22px;padding:22px 28px;background:var(--low);border-radius:36px}
+.sam .badge{width:64px;height:64px;background:var(--secondary);color:var(--secondary-ink);border-radius:20px}.sam .badge svg{width:34px;height:34px}
+.sam h2{font-size:26px;font-weight:680;margin:0 0 8px;letter-spacing:-.4px}.sam p{font-size:20px;color:var(--muted);margin:0}.sam code{font:500 20px var(--mono);color:var(--primary)}
+svg.icon{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@page{size:1600px 1080px;margin:0}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+</style>
+</head>
+<body>
+<svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs>
+<symbol id="devices" viewBox="0 0 24 24"><path d="M14 17H3V4h17v5M1 20h12"/><rect x="15" y="10" width="7" height="12" rx="1.5"/><path d="M18.5 19h.01"/></symbol>
+<symbol id="door" viewBox="0 0 24 24"><path d="M5 21V3h14v18M3 21h18M15 12h.01"/></symbol>
+<symbol id="db" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3.5"/><path d="M3 5v7c0 4.7 18 4.7 18 0V5M3 12v7c0 4.7 18 4.7 18 0v-7"/></symbol>
+<symbol id="file" viewBox="0 0 24 24"><path d="M14 2H5v20h14V7zM14 2v6h5M8 12h8M8 16h8"/></symbol>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#0052c4" stroke-width="1.6"/></marker>
+</defs></svg>
+<main class="canvas" aria-label="Weather Board serverless API architecture">
+<div class="eyebrow"><svg class="icon"><use href="#devices"/></svg>Weather Board · Architecture</div>
+<div class="meta">AWS SAM / PYTHON / SERVERLESS</div>
+<h1>One template. <span>A whole weather API.</span></h1>
+<p class="intro">From a click to a stored reading. Every resource is declared in <code>template.yaml</code>.</p>
+<div class="lane" style="left:64px">01 · REQUEST</div><div class="lane" style="left:348px">02 · ROUTE</div><div class="lane" style="left:710px">03 · RUN A FUNCTION</div><div class="lane" style="left:1282px">04 · STORE</div>
+<svg class="links" width="1600" height="1080" aria-label="Client to API Gateway, branching to five Lambda functions, each accessing DynamoDB">
+<path class="active" d="M276 576H336" marker-end="url(#arrow)"/>
+<path class="active" d="M608 576H666"/>
+<path d="M666 387V763M666 387H698M666 481H698M666 575H698M666 669H698M666 763H698"/>
+<path class="active" d="M690 387H698" marker-end="url(#arrow)"/><path class="active" d="M690 481H698" marker-end="url(#arrow)"/><path class="active" d="M690 575H698" marker-end="url(#arrow)"/><path class="active" d="M690 669H698" marker-end="url(#arrow)"/><path class="active" d="M690 763H698" marker-end="url(#arrow)"/>
+<path d="M1188 387H1226V763H1188M1188 481H1226M1188 575H1226M1188 669H1226"/>
+<path class="active" d="M1226 576H1270" marker-end="url(#arrow)"/>
+</svg>
+<section class="node client"><div class="badge"><svg class="icon"><use href="#devices"/></svg></div><h2>Client</h2><p>Weather Board<br>or Postman</p><span class="tag">HTTP request</span></section>
+<section class="node gateway"><div class="badge"><svg class="icon"><use href="#door"/></svg></div><h2>API Gateway</h2><code>WeatherApi · dev</code><p style="margin-top:14px">Method + path<br>select the function</p><span class="tag">5 req/s · burst 5</span></section>
+<section class="functions" aria-label="Five Lambda functions with their routes and SAM Connector permissions">
+<article class="fn"><div class="lambda">λ</div><div class="fn-info"><h3>CreateWeather</h3><div class="route"><span class="method post">POST</span>/create-weather</div></div><span class="access write">Write</span></article>
+<article class="fn"><div class="lambda">λ</div><div class="fn-info"><h3>GetWeather</h3><div class="route"><span class="method">GET</span>/weather/{id}</div></div><span class="access">Read</span></article>
+<article class="fn"><div class="lambda">λ</div><div class="fn-info"><h3>UpdateWeather</h3><div class="route"><span class="method put">PUT</span>/weather/{id}</div></div><span class="access write">Write</span></article>
+<article class="fn"><div class="lambda">λ</div><div class="fn-info"><h3>DeleteWeather</h3><div class="route"><span class="method delete">DELETE</span>/weather/{id}</div></div><span class="access write">Write</span></article>
+<article class="fn"><div class="lambda">λ</div><div class="fn-info"><h3>GetAllWeather</h3><div class="route"><span class="method">GET</span>/weathers</div></div><span class="access">Read</span></article>
+</section>
+<section class="node database"><div class="badge"><svg class="icon"><use href="#db"/></svg></div><h2>DynamoDB</h2><code>WeatherTable</code><p style="margin-top:10px">Key: <code>id</code> (string)</p><span class="tag">On-demand capacity</span></section>
+<div class="direction">Python 3.14 · arm64 · one function per endpoint</div>
+<section class="sam"><div class="badge"><svg class="icon"><use href="#file"/></svg></div><div><h2><code>template.yaml</code> → AWS SAM → CloudFormation → these resources</h2><p>SAM Connectors scope each function's Read or Write permissions to WeatherTable.</p></div></section>
+</main>
+<script>
+// The same scalloped Lambda container used in the platform and PDF.
+const points=Array.from({length:120},(_,i)=>{const a=i/120*Math.PI*2,r=47+3*Math.cos(12*a);return `${50+r*Math.cos(a)}% ${50+r*Math.sin(a)}%`}).join(',');
+document.querySelectorAll('.lambda').forEach(node=>node.style.clipPath=`polygon(${points})`);
+</script>
+</body>
+</html>

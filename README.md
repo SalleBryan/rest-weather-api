@@ -2,7 +2,9 @@
 
 A serverless **CRUDL REST API** built with **AWS SAM**, **Amazon API Gateway**, **AWS Lambda (Python)** and **Amazon DynamoDB**, from the Educloud Academy course *Building a Serverless Rest Api With AWS SAM and Python*. It comes with a web dashboard, a Postman collection, unit tests and a local mode that needs no AWS account.
 
-![Architecture](docs/architecture.png)
+![Weather Board architecture: API Gateway routes five endpoints to Python Lambda functions with scoped Read or Write access to DynamoDB.](docs/architecture.png)
+
+[Editable architecture diagram](docs/architecture.html)
 
 ```
 Client ──HTTP──▶ API Gateway (WeatherApi, stage "dev")
