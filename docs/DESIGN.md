@@ -66,3 +66,8 @@ Photographic backgrounds, glassmorphism, glossy 3D weather icons, the generic hi
 ## 4. Richer readings
 
 Optional measurements extend the existing reading rather than introducing a new highlights grid. The hero uses translucent chips; cards use their condition's secondary container and primary text colors. The scrollable side/bottom sheet uses the existing filled fields, labels, rounded surfaces, and local-time date input. Missing values stay unknown rather than displaying a misleading zero. Source and observation time appear alongside the measurements; Demo mode calls its synthetic records samples. The existing Google Sans Flex, condition shapes, light/dark palettes, and responsive breakpoints remain in use.
+
+
+## 5. Town history
+
+History lives in the existing rounded section surface. Filled town, measurement, date and unit controls use the current palette roles and focus outline. The primary color drives the chart line and markers; grid lines are low-opacity versions of that color, so light/dark and every weather condition remain consistent. A single chart switches measurements instead of adding another grid of widgets. SVG titles/descriptions and a keyboard-scrollable semantic table provide equivalent access to the data. The two-column controls and horizontally scrollable table fit compact screens without page overflow. Reduced-motion preferences apply to town navigation. Unit changes affect display only; the API and form keep their explicit metric units.

@@ -358,6 +358,25 @@ html:not(.ready) *, html:not(.ready) *::before, html:not(.ready) *::after { tran
 .measure-title { margin:28px 0 6px; }
 .measure-help { color:var(--md-sys-color-on-surface-variant); font-size:13px; line-height:1.6; margin:0 0 16px; }
 .form-error { color:var(--md-sys-color-error,#ba1a1a); font-size:13px; line-height:1.5; }
+.history { margin-top:24px; scroll-margin-top:90px; }
+.history-controls { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin:20px 0; }
+.history-control { display:flex; flex-direction:column; gap:6px; font-size:12px; font-weight:600; color:var(--md-sys-color-on-surface-variant); }
+.history-control input,.history-control select { width:100%; min-width:0; border:0; border-radius:var(--r-m); padding:12px; min-height:48px; background:var(--md-sys-color-surface-container-high); color:var(--md-sys-color-on-surface); font:inherit; font-size:14px; }
+.history-units { margin-left:auto; max-width:160px; }
+.history-chart { background:var(--md-sys-color-surface-container); border-radius:var(--r-xl); padding:16px 8px 8px; margin-top:16px; }
+.history-chart svg { width:100%; height:auto; display:block; color:var(--md-sys-color-primary); }
+.history-chart text { fill:var(--md-sys-color-on-surface-variant); font:12px var(--font); }
+.history-summary { font-size:14px; line-height:1.6; margin:0 16px 8px; }
+.history-note { font-size:13px; line-height:1.6; color:var(--md-sys-color-on-surface-variant); margin:12px 0; }
+.history-table { overflow:auto; max-height:360px; border-radius:var(--r-l); margin-top:20px; }
+.history-table table { border-collapse:collapse; width:100%; font-size:13px; white-space:nowrap; }
+.history-table caption { text-align:left; padding:12px; font-weight:650; }
+.history-table th,.history-table td { text-align:left; padding:12px; border-bottom:1px solid var(--md-sys-color-outline-variant); }
+.history-table th { position:sticky; top:0; background:var(--md-sys-color-surface-container-high); }
+.town-history-link { text-align:left; color:inherit; border:0; background:none; padding:0; }
+.town-history-link:hover { text-decoration:underline; text-underline-offset:4px; }
+.history :focus-visible,.town-history-link:focus-visible { outline:3px solid var(--md-sys-color-primary); outline-offset:3px; }
+@media(max-width:599px) { .history .section-head { flex-wrap:wrap; } .history-units { max-width:130px; } .history-chart { padding:12px 0; } }
 </style>
 </head>
 <body>
@@ -399,6 +418,24 @@ html:not(.ready) *, html:not(.ready) *::before, html:not(.ready) *::after { tran
       </div>
       <div class="filters" id="filters" role="toolbar" aria-label="Filter by condition"></div>
       <div class="cards" id="cards"></div>
+    </section>
+    <section class="section history" id="townHistory" aria-labelledby="historyTitle">
+      <div class="section-head"><h2 class="headline-m" id="historyTitle" tabindex="-1">Town history</h2>
+        <label class="history-control history-units">Units<select id="historyUnits"><option value="metric">°C · km/h</option><option value="imperial">°F · mph</option></select></label>
+      </div>
+      <p class="history-note">Explore your saved readings over time. Demo samples are illustrative, not live weather.</p>
+      <div class="history-controls">
+        <label class="history-control">Town<select id="historyTown" aria-label="History town"></select></label>
+        <label class="history-control">Measurement<select id="historyMetric"><option value="temperatureC">Temperature</option><option value="humidityPct">Humidity</option><option value="windKph">Wind speed</option></select></label>
+        <label class="history-control">From<input id="historyFrom" type="date"></label>
+        <label class="history-control">Through<input id="historyTo" type="date"></label>
+      </div>
+      <button class="tchip" id="historyReset" type="button">All dates</button>
+      <p class="form-error" id="historyError" role="alert"></p>
+      <div class="history-chart" id="historyChart"></div>
+      <p class="history-note" id="historyStatus" role="status"></p>
+      <div class="history-table" id="historyTable" tabindex="0" role="region" aria-label="Town readings, scroll for more"></div>
+      <p class="history-note">Converted table values are rounded to 12 significant digits. Dates use your local time. Observation time is used when supplied; otherwise recorded time is used. Lines break at missing measurements. Editing or deleting a reading changes this view; it is not an edit log.</p>
     </section>
   </div>
 
@@ -463,6 +500,7 @@ html:not(.ready) *, html:not(.ready) *::before, html:not(.ready) *::after { tran
 
 <div class="snack" id="snack" role="status" aria-live="polite"><span class="sym" id="snackIcon">check</span><span id="snackText"></span></div>
 
+<script src="history.js"></script>
 <script>
 'use strict';
 const $ = id => document.getElementById(id);
@@ -567,8 +605,11 @@ const demoTable = new Map();
 (function seedDemo() {
   const now = Date.now();
   [['Buea', 'Rainy', 1, 21.5, 87, 12], ['Douala', 'HOT', 3, 33, 74, 9], ['Yaoundé', 'Cloudy', 5, 25, 78, 6], ['Limbe', 'Sunny', 8, 29, 71, 14], ['Bamenda', 'Cold', 26, 17, 83, 8], ['Kribi', 'Windy', 30, 27, 76, 28]].forEach(([town, weather, h, temperatureC, humidityPct, windKph]) => {
-    const t = new Date(now - h * 3600e3).toISOString().slice(0, 19) + '+00:00';
-    const id = uuid(); demoTable.set(id, { id, weather, town, temperatureC, humidityPct, windKph, observedAt:t, source:'manual', createdAt: t, updatedAt: t });
+    for (let day = 0; day < 7; day++) {
+      const t = new Date(now - (h + day * 24) * 3600e3).toISOString();
+      const id = uuid(), delta = [0,-1.5,2,.5,-2,1,1.5][day];
+      demoTable.set(id, { id, weather, town, temperatureC:temperatureC+delta, humidityPct:Math.min(100,humidityPct+day), windKph:windKph+day*2, observedAt:t, source:'manual', createdAt:t, updatedAt:t });
+    }
   });
 })();
 function validate(body) {
@@ -681,6 +722,7 @@ function logCall(method, path, status, ms, route, data) {
 
 /* ── Rendering ─────────────────────────────────────────────────────────── */
 let items = [], filter = 'all', loading = true, editingId = null, flashId = null;
+let historyTown = '', historyUnits = store.get('wb-units', 'metric') === 'imperial' ? 'imperial' : 'metric';
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const parseTime = s => new Date(String(s || '').replace(/\+00:00$/, 'Z'));
 function ago(s) {
@@ -692,9 +734,8 @@ const fmt = s => { const t = parseTime(s); return isFinite(t) ? t.toLocaleString
 const sentence = c => c.key === 'board' ? 'It’s <span class="cond"></span>' : ({ cold: 'It’s cold', hot: 'It’s HOT', windy: 'It’s windy', foggy: 'It’s foggy', stormy: 'It’s stormy', drizzle: 'It’s drizzling' }[c.key] || 'It’s ' + c.label.toLowerCase());
 
 function measurementHTML(it) {
-  return [['temperatureC','°C'],['humidityPct','% humidity'],['windKph','km/h wind']]
-    .filter(([key]) => it[key] !== null && it[key] !== undefined)
-    .map(([key,unit]) => `<span>${esc(String(it[key]))} ${unit}</span>`).join('');
+  return Object.keys(WeatherHistory.metrics).filter(key => WeatherHistory.value(it,key,historyUnits) !== null)
+    .map(key => `<span>${displayValue(it,key)} ${WeatherHistory.metrics[key][historyUnits]}${key === 'humidityPct' ? ' humidity' : key === 'windKph' ? ' wind' : ''}</span>`).join('');
 }
 function observationText(it) {
   const source = mode === 'demo' ? 'Demo sample' : it.source === 'imported' ? `Imported · ${it.provider || 'Unspecified provider'}` : 'Manual observation';
@@ -719,7 +760,7 @@ function renderHero() {
     hero.className = 'hero';
     hero.innerHTML = `<div class="copy"><span class="eyebrow"><span class="sym">history</span><span class="ew"></span></span>
       <h1 class="display-hero"></h1><div class="where display-s"><span class="sym">location_on</span><span class="town"></span></div>
-      <div class="meta"><button class="chip" type="button" data-act="edit"><span class="sym">edit</span>Edit</button><button class="chip mono idchip" type="button" title="Copy id"><span class="sym">content_copy</span><span class="idt"></span></button><span class="chip when"></span></div><div class="measurements"></div><div class="observation"></div></div>
+      <div class="meta"><button class="chip" type="button" data-act="edit"><span class="sym">edit</span>Edit</button><button class="chip mono idchip" type="button" title="Copy id"><span class="sym">content_copy</span><span class="idt"></span></button><span class="chip when"></span><button class="chip" type="button" data-act="history">Town history</button></div><div class="measurements"></div><div class="observation"></div></div>
       <div class="hero-art"><div class="back shape"></div><div class="front shape"><span class="sym"></span></div></div>`;
     setShape(hero.querySelector('.back'), 'circle'); setShape(hero.querySelector('.front'), 'circle');
   }
@@ -731,6 +772,7 @@ function renderHero() {
   hero.querySelector('.town').textContent = 'in ' + latest.town;
   hero.querySelector('.idt').textContent = latest.id.slice(0, 8);
   hero.querySelector('.when').textContent = 'Created ' + fmt(latest.createdAt);
+  hero.querySelector('[data-act=history]').onclick = () => openHistory(latest.town);
   hero.querySelector('[data-act=edit]').onclick = () => openSheet(latest);
   hero.querySelector('.idchip').onclick = () => copyId(latest.id);
   const front = hero.querySelector('.front'), back = hero.querySelector('.back');
@@ -779,7 +821,7 @@ function renderCards() {
     el.className = 'card' + (it.id === editingId ? ' editing' : '') + (it.id === flashId ? ' flash' : '');
     el.setAttribute('style', cardVars(c.key));
     el.innerHTML = `<div class="glyph shape"><span class="sym">${c.icon}</span></div>
-      <div><div class="town"></div><div class="cond"></div><div class="when"></div></div>
+      <div><button type="button" class="town town-history-link"></button><div class="cond"></div><div class="when"></div></div>
       <div class="readout">${measurementHTML(it)}</div><div class="provenance"></div>
       <div class="foot">
         <button class="id" type="button" title="Copy id"><span class="sym">content_copy</span><span></span></button>
@@ -787,6 +829,8 @@ function renderCards() {
         <button class="icon-btn sm" type="button" data-a="del" aria-label="Delete"><span class="sym">delete</span></button></div>`;
     el.querySelector('.provenance').textContent = observationText(it);
     el.querySelector('.town').textContent = it.town;
+    el.querySelector('.town').setAttribute('aria-label', 'View history for ' + it.town);
+    el.querySelector('.town').onclick = () => openHistory(it.town);
     el.querySelector('.cond').textContent = it.weather;
     el.querySelector('.when').textContent = (it.updatedAt && it.updatedAt !== it.createdAt ? 'Updated ' : 'Created ') + ago(it.updatedAt || it.createdAt);
     el.querySelector('.when').title = 'Created ' + fmt(it.createdAt) + '\nUpdated ' + fmt(it.updatedAt);
@@ -805,8 +849,56 @@ function render() {
   applyTheme(latest ? conditionOf(latest.weather).key : 'board');
   setShape($('brandShape'), latest ? conditionOf(latest.weather).shape : 'sunny');
   $('brandShape').firstElementChild.textContent = latest ? conditionOf(latest.weather).icon : 'sunny';
-  renderHero(); renderGlance(); renderFilters(); renderCards();
+  renderHero(); renderGlance(); renderFilters(); renderCards(); renderHistory();
 }
+
+/* Town history uses the loaded collection; server-side queries follow in item 4. */
+function displayValue(item, metric) {
+  const v = WeatherHistory.value(item, metric, historyUnits);
+  return v === null ? 'Not supplied' : new Intl.NumberFormat(undefined,{maximumFractionDigits:1}).format(v);
+}
+function tableValue(item,metric) {
+  const v = WeatherHistory.value(item,metric,historyUnits);
+  return v === null ? 'Not supplied' : String(historyUnits === 'metric' || metric === 'humidityPct' ? v : Number(v.toPrecision(12)));
+}
+function openHistory(town) {
+  historyTown = WeatherHistory.townKey(town); renderHistory();
+  $('historyTitle').focus({preventScroll:true});
+  $('townHistory').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',block:'start'});
+}
+function renderHistory() {
+  const towns = new Map();
+  items.forEach(it => { const key = WeatherHistory.townKey(it.town); if (key && !towns.has(key)) towns.set(key,it.town.trim()); });
+  if (!towns.has(historyTown)) historyTown = items.length ? WeatherHistory.townKey(items[0].town) : '';
+  $('historyTown').innerHTML = towns.size ? [...towns.entries()].sort((a,b)=>a[1].localeCompare(b[1])).map(([key,name])=>`<option value="${esc(key)}">${esc(name)}</option>`).join('') : '<option value="">No towns yet</option>';
+  $('historyTown').value = historyTown; $('historyUnits').value = historyUnits;
+  const from = $('historyFrom').value, to = $('historyTo').value;
+  const invalid = ($('historyFrom').validity.badInput || $('historyTo').validity.badInput || (from && to && from > to));
+  $('historyError').textContent = invalid ? 'Choose valid dates, with From on or before Through.' : '';
+  const rows = invalid ? [] : WeatherHistory.select(items,historyTown,from,to);
+  const metric = $('historyMetric').value, info = WeatherHistory.metrics[metric], unit = info[historyUnits];
+  const model = WeatherHistory.chart(rows,metric,historyUnits);
+  const town = towns.get(historyTown) || 'this town';
+  $('historyStatus').textContent = loading ? 'Loading saved readings…' : `${rows.length} saved reading${rows.length===1?'':'s'} for ${town}${from || to ? ' in this date range' : ''}.`;
+  if (!model.count) {
+    $('historyChart').innerHTML = `<p class="history-summary">${invalid ? 'Check the date range above.' : !rows.length ? 'No saved readings in this range.' : 'No dated '+info.label.toLowerCase()+' measurements yet. Add a reading with this measurement to start a chart.'}</p>`;
+  } else {
+    const number = v => new Intl.NumberFormat(undefined,{maximumFractionDigits:1}).format(v);
+    const width = Math.max(280,Math.min(640,$('historyChart').clientWidth-16));
+    const left = 48, right = width-16, plotX = x => left+(x-64)/552*(right-left);
+    const ticks = Array.from({length:4},(_,i)=>{ const y=28+i*52,v=model.high-(model.high-model.low)*i/3; return `<line x1="${left}" x2="${right}" y1="${y}" y2="${y}" stroke="currentColor" opacity=".12"/><text x="${left-8}" y="${y+4}" text-anchor="end">${esc(number(v))}</text>`; }).join('');
+    const lines = model.segments.map(points => (points.length>1 ? `<polyline points="${points.map(p=>plotX(p.x)+','+p.y).join(' ')}" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>` : '') + points.map(p=>`<circle cx="${plotX(p.x)}" cy="${p.y}" r="4" fill="currentColor"><title>${esc(fmt(new Date(p.time).toISOString()))}: ${esc(number(p.value))} ${unit}</title></circle>`).join('')).join('');
+    $('historyChart').innerHTML = `<p class="history-summary">${info.label} · <b>${esc(number(model.min))} to ${esc(number(model.max))} ${unit}</b> · ${model.count} dated measurement${model.count===1?'':'s'}</p>
+      <svg viewBox="0 0 ${width} 240" role="img" aria-labelledby="chartTitle chartDesc"><title id="chartTitle">${esc(town)} ${info.label.toLowerCase()} history (${unit})</title><desc id="chartDesc">${model.count} saved measurements. Actual time spacing; gaps represent missing values. Exact values are available in the readings table below.</desc>${ticks}${lines}
+      <text x="${left}" y="218">${esc(fmt(new Date(model.start).toISOString()))}</text>${model.start!==model.end ? `<text x="${right}" y="218" text-anchor="end">${esc(fmt(new Date(model.end).toISOString()))}</text>` : ''}</svg>`;
+  }
+  $('historyTable').innerHTML = rows.length ? `<table><caption>Saved readings for ${esc(town)}</caption><thead><tr><th scope="col">Time (local)</th><th scope="col">Condition</th>${Object.values(WeatherHistory.metrics).map(m=>`<th scope="col">${m.label} (${m[historyUnits]})</th>`).join('')}<th scope="col">Source</th></tr></thead><tbody>${[...rows].reverse().map(it=>`<tr><td>${esc(fmt(it.observedAt || it.createdAt))}<br><small>${it.observedAt ? 'Observed' : 'Recorded'}</small></td><td>${esc(it.weather)}</td>${Object.keys(WeatherHistory.metrics).map(key=>`<td>${tableValue(it,key)}</td>`).join('')}<td>${esc(mode==='demo' ? 'Demo sample' : it.source==='imported' ? 'Imported · '+(it.provider || 'Unspecified provider') : 'Manual')}</td></tr>`).join('')}</tbody></table>` : '';
+}
+$('historyTown').onchange = e => { historyTown=e.target.value; renderHistory(); };
+['historyMetric','historyFrom','historyTo'].forEach(id=>$(id).onchange=renderHistory);
+$('historyUnits').onchange = e => { historyUnits=e.target.value; store.set('wb-units',historyUnits); render(); };
+window.addEventListener('resize', () => requestAnimationFrame(renderHistory));
+$('historyReset').onclick = () => { $('historyFrom').value=''; $('historyTo').value=''; renderHistory(); };
 
 /* loading indicator: cycle through shapes like M3 Expressive's loading indicator */
 const LOADER_SEQ = ['cookie9', 'sunny', 'pill', 'burst', 'flower', 'cookie12', 'clover'];

@@ -94,6 +94,24 @@ The dashboard shows measurements, observation time, coordinates, and provenance 
 
 ---
 
+## Town history and charts
+
+Open **Town history** from the latest reading or click a town name on a reading card. Select a town, temperature/humidity/wind, and an optional inclusive local date range. **All dates** resets the range. Switch between °C/km/h and °F/mph; this display preference is saved locally and also applies to the hero and cards. API payloads and the reading form continue to use Celsius and km/h.
+
+Charts use actual observation timestamps, falling back to creation time for legacy readings. Missing measurements break the line, unknown timestamps are not plotted, and a single reading is shown as one point. The scrollable table provides exact values, source labels, and observed/recorded time. Dates without a supplied timestamp remain unknown. Readings are grouped by normalized town name, so use distinct town labels for places sharing a name.
+
+This view uses the collection already loaded by GET `/weathers`; it does not add a new full-table scan when changing filters. Server-side querying/pagination is the next improvement. The view shows currently saved readings, not previous versions of edited or deleted records. Demo mode supplies seven days of synthetic samples for each of six towns. There is no external weather feed connected yet.
+
+![Town history in the existing theme](docs/dashboard-history-light.png)
+
+The chart helpers have dependency-free tests, runnable with Node.js:
+
+```powershell
+node --test tests/history.test.cjs
+```
+
+---
+
 ## Run it without AWS (2 minutes)
 
 You need [uv](https://docs.astral.sh/uv/) (it installs the right Python for you).
