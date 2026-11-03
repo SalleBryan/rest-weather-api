@@ -68,7 +68,7 @@ def main():
     check('delete missing item', 'DELETE', '/weather/does-not-exist', 404)
     check('create with bad body', 'POST', '/create-weather', 400, {'weather': 'Cold'})
 
-    print(f"\n{len(items or [])} item(s) were in the table during the list call.")
+    print(f"\n{len((items or {}).get('items', []))} item(s) were in the table during the list call.")
     print(f"{GREEN}All checks passed.{RESET}\n" if not failures else f"{RED}{failures} check(s) failed.{RESET}\n")
     sys.exit(1 if failures else 0)
 

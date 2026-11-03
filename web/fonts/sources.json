@@ -1,0 +1,42 @@
+[
+  {
+    "file": "google-sans-code-latin-ext.woff2",
+    "source": "https://fonts.gstatic.com/s/googlesanscode/v22/pxiSyogzv91QhV44Z_GQBHsGf5PuckJMZfIVTPZaiXEp_jF38LSsgg.woff2",
+    "sha256": "b1b1ede14819c2ef31ff9841fb7515bcec1bd7d9ab17972987926bfc21174fc8"
+  },
+  {
+    "file": "google-sans-code-latin.woff2",
+    "source": "https://fonts.gstatic.com/s/googlesanscode/v22/pxiSyogzv91QhV44Z_GQBHsGf5PuckJMZfIVTPZaiXEp_jF58LQ.woff2",
+    "sha256": "98eee6fe6dc8f6341f80caf9c7e72a5241dd78188d403a12bc6aeb23a3e8c1a3"
+  },
+  {
+    "file": "google-sans-flex-latin-ext.woff2",
+    "source": "https://fonts.gstatic.com/s/googlesansflex/v26/t5tFIQcYNIWbFgDgAAzZ34auoVyXkJCOjsOqNGFbN5hF8Ju1x4d-JwN2l9sIKwkaNrT3Qec.woff2",
+    "sha256": "ba44afad26587de4cede1d25bbed0641a329dd3714ed2cc9dfd996b1a02147e3"
+  },
+  {
+    "file": "google-sans-flex-latin.woff2",
+    "source": "https://fonts.gstatic.com/s/googlesansflex/v26/t5tFIQcYNIWbFgDgAAzZ34auoVyXkJCOjsOqNGFbN5hF8Ju1x4d-JwN2l9sIKwkaOLT3.woff2",
+    "sha256": "7e93aa08665b6bd5114f823cabe2dc2faaa69abb5528a296591e115151f81148"
+  },
+  {
+    "file": "material-symbols-rounded.woff2",
+    "source": "https://fonts.gstatic.com/l/font?kit=sykg-zNym6YjUruM-QrEh7-nyTnjDwKNJ_190FjzarEXXoBFX9-kani4PLuw4tYRCUSsjIh_jh2r0SnqS1xeZHUd4-kgB_KeOhvI9Az_KG1sNTPrBhkq1exLDxROpVc6-ywIrUC4VGcrSTerEellQz28&skey=70ddea8fe54d532e&v=v384",
+    "sha256": "e799d48d3b8ef23559943dc7babf42c8bc840b480c0206e47397b9d709120a40"
+  },
+  {
+    "file": "GoogleSansFlex-OFL.txt",
+    "source": "https://raw.githubusercontent.com/googlefonts/googlesans-flex/main/OFL.txt",
+    "sha256": "831b6e041705873c3e6efb18c4c96202bc41c8be42a456d3d26c47abf14816d0"
+  },
+  {
+    "file": "GoogleSansCode-OFL.txt",
+    "source": "https://raw.githubusercontent.com/googlefonts/googlesans-code/main/OFL.txt",
+    "sha256": "ff8f4fbc4f1a71c7d4c6481c48dc2b21c43f8dc15872536667fee45c15d20928"
+  },
+  {
+    "file": "MaterialSymbols-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/google/material-design-icons/master/LICENSE",
+    "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd"
+  }
+]

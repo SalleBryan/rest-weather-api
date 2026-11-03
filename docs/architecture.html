@@ -17,7 +17,7 @@ h1{margin:29px 0 12px;font-size:72px;font-weight:760;letter-spacing:-2.8px;line-
 .node{position:absolute;background:var(--card);text-align:center;padding:28px 16px;display:flex;align-items:center;flex-direction:column}
 .client{left:64px;top:420px;width:212px;height:312px;border-radius:42px}
 .gateway{left:348px;top:400px;width:260px;height:352px;border-radius:130px 130px 38px 38px}
-.database{left:1282px;top:418px;width:254px;height:316px;border-radius:44px}
+.database{left:1282px;top:402px;width:254px;height:348px;border-radius:44px}
 .node h2{font-size:28px;letter-spacing:-.6px;margin:17px 0 8px;font-weight:700;font-variation-settings:'ROND' 100}
 .node p{font-size:21px;color:var(--muted);line-height:1.4;margin:0}.node code{font:17px var(--mono);color:var(--muted)}
 .badge{width:80px;height:80px;display:grid;place-items:center;flex:none;background:var(--primary);color:white;border-radius:50%}.badge svg{width:44px;height:44px}
@@ -68,9 +68,9 @@ svg.icon{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;strok
 <article class="fn"><div class="lambda">λ</div><div class="fn-info"><h3>GetWeather</h3><div class="route"><span class="method">GET</span>/weather/{id}</div></div><span class="access">Read</span></article>
 <article class="fn"><div class="lambda">λ</div><div class="fn-info"><h3>UpdateWeather</h3><div class="route"><span class="method put">PUT</span>/weather/{id}</div></div><span class="access write">Write</span></article>
 <article class="fn"><div class="lambda">λ</div><div class="fn-info"><h3>DeleteWeather</h3><div class="route"><span class="method delete">DELETE</span>/weather/{id}</div></div><span class="access write">Write</span></article>
-<article class="fn"><div class="lambda">λ</div><div class="fn-info"><h3>GetAllWeather</h3><div class="route"><span class="method">GET</span>/weathers</div></div><span class="access">Read</span></article>
+<article class="fn"><div class="lambda">λ</div><div class="fn-info"><h3>GetAllWeather</h3><div class="route"><span class="method">GET</span>/weathers, /locations</div></div><span class="access">Read</span></article>
 </section>
-<section class="node database"><div class="badge"><svg class="icon"><use href="#db"/></svg></div><h2>DynamoDB</h2><code>WeatherTable</code><p style="margin-top:10px">Key: <code>id</code> (string)</p><span class="tag">On-demand capacity</span></section>
+<section class="node database"><div class="badge"><svg class="icon"><use href="#db"/></svg></div><h2>DynamoDB</h2><code>WeatherTable</code><p style="margin-top:10px">Key: <code>id</code> (string)</p><span class="tag">On-demand capacity</span><code style="font-size:13px;margin-top:12px">FeedIndex · TownIndex</code></section>
 <div class="direction">Python 3.14 · arm64 · one function per endpoint</div>
 <section class="sam"><div class="badge"><svg class="icon"><use href="#file"/></svg></div><div><h2><code>template.yaml</code> → AWS SAM → CloudFormation → these resources</h2><p>SAM Connectors scope each function's Read or Write permissions to WeatherTable.</p></div></section>
 </main>

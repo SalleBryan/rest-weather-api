@@ -3,6 +3,8 @@ import os
 import boto3
 from botocore.exceptions import ClientError
 
+from search_index import public_item
+
 from api_response import get_path_id, respond
 
 dynamodb = boto3.resource('dynamodb')
@@ -24,7 +26,7 @@ def lambda_handler(event, context):
 
     # get_item returns no 'Item' key when nothing matches, so check before reading it.
     item = response.get('Item')
-    if item is None:
+    if item is None or 'weather' not in item:
         return respond(404, {"message": f"Weather item {weather_id} not found"})
 
-    return respond(200, item)
+    return respond(200, public_item(item))

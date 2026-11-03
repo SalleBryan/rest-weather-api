@@ -16,6 +16,7 @@ import re
 import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import urlsplit, parse_qs
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'src'))
@@ -26,6 +27,7 @@ TABLE_NAME = 'WeatherTable-local'
 ROUTES = [
     ('POST', re.compile(r'^/create-weather$'), 'create_weather'),
     ('GET', re.compile(r'^/weathers$'), 'get_weathers'),
+    ('GET', re.compile(r'^/locations$'), 'get_weathers'),
     ('GET', re.compile(r'^/weather/(?P<id>[^/]+)$'), 'get_weather'),
     ('PUT', re.compile(r'^/weather/(?P<id>[^/]+)$'), 'update_weather'),
     ('DELETE', re.compile(r'^/weather/(?P<id>[^/]+)$'), 'delete_weather'),
@@ -39,6 +41,7 @@ CORS = {
 
 
 def start_fake_aws():
+    from search_index import ATTRIBUTES, INDEXES
     import boto3
     from moto import mock_aws
 
@@ -52,7 +55,8 @@ def start_fake_aws():
     mock.start()
     boto3.resource('dynamodb').create_table(
         TableName=TABLE_NAME,
-        AttributeDefinitions=[{'AttributeName': 'id', 'AttributeType': 'S'}],
+        AttributeDefinitions=ATTRIBUTES,
+            GlobalSecondaryIndexes=INDEXES,
         KeySchema=[{'AttributeName': 'id', 'KeyType': 'HASH'}],
         BillingMode='PAY_PER_REQUEST',
     )
@@ -96,6 +100,7 @@ class ApiGateway(BaseHTTPRequestHandler):
                     'path': path,
                     'pathParameters': match.groupdict() or None,
                     'body': body,
+                    'queryStringParameters': {k:v[-1] for k,v in parse_qs(urlsplit(self.path).query).items()},
                 }
                 result = self.handlers[name].lambda_handler(event, None)
                 return self.reply(result['statusCode'], result['body'], result.get('headers', {}), name)
@@ -125,7 +130,7 @@ def main():
     ApiGateway.handlers = start_fake_aws()
     server = ThreadingHTTPServer(('127.0.0.1', args.port), ApiGateway)
     print(f"\nLocal weather API running at http://localhost:{args.port}/dev  (Ctrl+C to stop)")
-    print("Routes: POST /create-weather | GET /weathers | GET, PUT, DELETE /weather/{id}\n")
+    print("Routes: POST /create-weather | GET /weathers, /locations | GET, PUT, DELETE /weather/{id}\n")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

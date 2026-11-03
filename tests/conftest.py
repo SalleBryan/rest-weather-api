@@ -5,6 +5,7 @@ import os
 import boto3
 import pytest
 from moto import mock_aws
+from search_index import ATTRIBUTES, INDEXES
 
 TABLE_NAME = 'WeatherTable-test'
 HANDLERS = ['create_weather', 'get_weather', 'update_weather', 'delete_weather', 'get_weathers']
@@ -26,7 +27,8 @@ def api():
     with mock_aws():
         boto3.resource('dynamodb').create_table(
             TableName=TABLE_NAME,
-            AttributeDefinitions=[{'AttributeName': 'id', 'AttributeType': 'S'}],
+            AttributeDefinitions=ATTRIBUTES,
+            GlobalSecondaryIndexes=INDEXES,
             KeySchema=[{'AttributeName': 'id', 'KeyType': 'HASH'}],
             BillingMode='PAY_PER_REQUEST',
         )
@@ -43,8 +45,8 @@ class Api:
     def __init__(self, modules):
         self.modules = modules
 
-    def call(self, handler, body=None, weather_id=None, raw_body=None):
-        event = {
+    def call(self, handler, body=None, weather_id=None, raw_body=None, query=None, path="/weathers"):
+        event = {'path':path, 'queryStringParameters':query,
             'body': raw_body if raw_body is not None else (json.dumps(body) if body is not None else None),
             'pathParameters': {'id': weather_id} if weather_id else None,
         }

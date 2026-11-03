@@ -16,7 +16,7 @@ def test_measurements_round_trip_as_json_numbers(api):
     assert isinstance(saved['temperatureC'], (int, float))
     assert saved['humidityPct'] == 87
     assert saved['windKph'] == 0
-    assert api.call('get_weathers')[1] == [item]
+    assert api.call('get_weathers')[1]['items'] == [item]
 
 
 @pytest.mark.parametrize('extra', [

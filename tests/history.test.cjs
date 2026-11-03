@@ -9,6 +9,7 @@ const rows = [
 ];
 test('town selection is case/whitespace insensitive, sorted by observation time', () => {
   assert.equal(h.townKey('  New   York  '), 'new york');
+  assert.equal(h.townKey('Ｂｕｅａ'), 'buea');
   assert.equal(h.select(rows.reverse(), 'buea').length, 3);
   assert.equal(h.select(rows, 'buea')[0].temperatureC, 20);
 });

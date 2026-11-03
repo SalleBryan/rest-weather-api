@@ -49,7 +49,7 @@
       "name": "4. List weathers",
       "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
         "pm.test('200 OK', () => pm.response.to.have.status(200));",
-        "pm.test('is a list', () => pm.expect(pm.response.json()).to.be.an('array'));"
+        "pm.test('is a list', () => pm.expect(pm.response.json().items).to.be.an('array'));"
       ] } }],
       "request": { "method": "GET", "url": "{{baseUrl}}/weathers" }
     },

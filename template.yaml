@@ -32,9 +32,8 @@ Resources:
       StageName: dev
       Description: serverless api for weather application
       # The API is public, so cap traffic for every route on this stage.
-      # Requests over the limit get "429 Too Many Requests" instead of running up a bill.
-      # Keep the burst below the account's Lambda concurrency limit (10 on new accounts,
-      # shared by every function in the region) so a spike here can't starve other apps.
+      # Throttles are best-effort traffic controls, not a quota or spending cap.
+      # Concurrent executions are shared with other functions in the account/region.
       MethodSettings:
         - ResourcePath: "/*"
           HttpMethod: "*"
@@ -48,6 +47,29 @@ Resources:
       AttributeDefinitions:
         - AttributeName: id
           AttributeType: S
+        - AttributeName: feedKey
+          AttributeType: S
+        - AttributeName: townKey
+          AttributeType: S
+        - AttributeName: orderKey
+          AttributeType: S
+      GlobalSecondaryIndexes:
+        - IndexName: FeedIndex
+          KeySchema:
+            - AttributeName: feedKey
+              KeyType: HASH
+            - AttributeName: orderKey
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: TownIndex
+          KeySchema:
+            - AttributeName: townKey
+              KeyType: HASH
+            - AttributeName: orderKey
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
       KeySchema:
         - AttributeName: id
           KeyType: HASH
@@ -118,6 +140,7 @@ Resources:
             Id: WeatherTable
           Permissions:
             - Write
+            - Read
 
   # ── D: Delete ───────────────────────────────────────────────────────────────
   DeleteWeather:
@@ -153,6 +176,12 @@ Resources:
           Type: Api
           Properties:
             Path: /weathers
+            Method: GET
+            RestApiId: !Ref WeatherApi
+        Locations:
+          Type: Api
+          Properties:
+            Path: /locations
             Method: GET
             RestApiId: !Ref WeatherApi
     Connectors:

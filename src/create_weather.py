@@ -5,6 +5,8 @@ from datetime import datetime, timezone
 import boto3
 from botocore.exceptions import ClientError
 
+from search_index import index_fields, catalog, public_item
+
 from api_response import parse_weather_body, respond
 
 dynamodb = boto3.resource('dynamodb')
@@ -31,11 +33,14 @@ def lambda_handler(event, context):
         'updatedAt': now,
     }
 
+    item.update(index_fields(item))
+    item["revision"] = str(uuid.uuid4())
     try:
+        catalog(table, item["town"])
         # The condition guarantees a create can never replace an existing item.
         table.put_item(Item=item, ConditionExpression='attribute_not_exists(id)')
     except ClientError as e:
         print(f"put_item failed: {e}")
         return respond(500, {"message": "Could not create the weather item"})
 
-    return respond(201, {"message": "Weather successfully created!", "item": item})
+    return respond(201, {"message": "Weather successfully created!", "item": public_item(item)})

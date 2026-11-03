@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Your API · Weather Board</title>
+    <meta
+      name="description"
+      content="A Material 3 Expressive dashboard for a serverless CRUDL weather API (AWS SAM, API Gateway, Lambda, DynamoDB)."
+    />
+
+    <link rel="stylesheet" href="fonts/fonts.css" />
+    <script src="palettes.js"></script>
+    <link rel="stylesheet" href="workspace-base.css" />
+    <link rel="stylesheet" href="explore.css" />
+    <link rel="stylesheet" href="workspace.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to workspace</a>
+    <nav class="rail" aria-label="Main navigation">
+      <a class="brand-mark" href="index.html" aria-label="Weather Board home"
+        ><span class="sym fill">sunny</span></a
+      ><a href="index.html"
+        ><span class="sym">partly_cloudy_day</span><span>Weather</span></a
+      ><a href="workspace.html" aria-current="page"
+        ><span class="sym">api</span><span>Your API</span></a
+      ><button id="connectionShortcut" type="button">
+        <span class="sym">settings</span><span>Connection</span>
+      </button>
+    </nav>
+    <div class="app-shell" id="workspaceShell">
+      <header class="topbar">
+        <a class="wordmark" href="index.html"
+          >Weather Board<span>YOUR API</span></a
+        >
+        <div class="top-actions">
+          <span id="connectionBadge" class="quiet-label">Disconnected</span
+          ><button
+            class="icon-btn"
+            id="themeBtn"
+            type="button"
+            aria-label="Toggle dark mode"
+          >
+            <span class="sym">dark_mode</span>
+          </button>
+        </div>
+      </header>
+      <div class="workspace-heading">
+        <div>
+          <p class="eyebrow">Your observations. Your infrastructure.</p>
+          <h1>Your weather journal.</h1>
+        </div>
+        <div class="brand" hidden>
+          <div class="glyph shape" id="brandShape">
+            <span class="sym">sunny</span>
+          </div>
+        </div>
+      </div>
+      <div class="workspace-tabs" role="group" aria-label="Workspace view">
+        <button type="button" data-view="readings" aria-pressed="false">
+          <span class="sym">view_list</span>Readings</button
+        ><button type="button" data-view="history" aria-pressed="false">
+          <span class="sym">monitoring</span>History</button
+        ><button type="button" data-view="connection" aria-pressed="true">
+          <span class="sym">settings</span>Connection
+        </button>
+      </div>
+      <div class="wavy" id="wavy" aria-hidden="true">
+        <svg viewBox="0 0 1240 6" preserveAspectRatio="none">
+          <path id="wavePath" />
+        </svg>
+      </div>
+      <main id="main" class="workspace-main">
+        <section
+          id="connectionPane"
+          data-pane="connection"
+          class="connection-panel"
+          aria-labelledby="connectionTitle"
+        >
+          <div class="connection-intro">
+            <p class="eyebrow">A space for your own data</p>
+            <h2 id="connectionTitle">Make yourself<br />at home.</h2>
+            <p>
+              Connect a compatible Weather Board API to keep observations, find
+              saved locations, and explore their history. For worldwide
+              forecasts, head to <a href="index.html">Explore weather</a>.
+            </p>
+          </div>
+          <div class="connection-form">
+            <form id="connectForm">
+              <label class="history-control" for="apiUrl"
+                ><span>API base URL</span
+                ><span class="connection-input"
+                  ><span class="status-dot" id="dot"></span
+                  ><input
+                    id="apiUrl"
+                    type="url"
+                    required
+                    placeholder="https://your-api.example/dev"
+                    spellcheck="false"
+                    autocomplete="off"
+                    aria-describedby="connectionHelp" /></span
+              ></label>
+              <p id="connectionHelp" class="small muted">
+                Use your WeatherApiUrl from SAM, or a local Weather Board API.
+                No credentials in the URL. HTTPS is required except for
+                localhost.
+              </p>
+              <div class="connection-actions">
+                <button class="btn filled" id="connectBtn" type="submit">
+                  <span class="sym">link</span>Connect</button
+                ><button
+                  class="btn text"
+                  id="disconnectBtn"
+                  type="button"
+                  hidden
+                >
+                  Disconnect
+                </button>
+              </div>
+              <p id="connectionStatus" class="small" role="status">
+                Nothing connects automatically, even when a URL is saved.
+              </p>
+            </form>
+          </div>
+        </section>
+        <section
+          id="requestControls"
+          data-pane="connection"
+          class="connection-notes"
+        >
+          <h3>Keep requests intentional.</h3>
+          <p id="byoUsage" role="status"></p>
+          <p>
+            10 requests per minute and 100 per UTC day in this browser. Reads
+            use pages of 20, with more loaded on request. No polling or
+            automatic retries. Disconnect to stop new requests and cancel
+            pending requests.
+          </p>
+          <p class="small muted">
+            Connect only to an API you control or trust. It must implement this
+            project’s routes and allow browser requests (CORS). This public
+            learning API does not provide authentication. Browser limits can be
+            reset or bypassed; your provider’s quotas and billing controls are
+            still needed. AWS API Gateway’s existing 5 requests/second and burst
+            of 5 are best-effort throttles, not a spending cap.
+          </p>
+        </section>
+
+        <div class="col-main">
+          <div id="readingsPane" data-pane="readings" hidden>
+            <form class="search workspace-search" id="searchForm" role="search">
+              <span class="sym muted">search</span
+              ><select id="searchKind" aria-label="Search by">
+                <option value="location">Location</option>
+                <option value="id">Reading ID</option></select
+              ><input
+                id="lookupId"
+                maxlength="160"
+                placeholder="Search saved towns or cities"
+                autocomplete="off"
+                aria-label="Search saved locations or reading IDs"
+              /><button class="icon-btn" type="submit" aria-label="Look up">
+                <span class="sym">arrow_forward</span>
+              </button>
+            </form>
+            <section
+              id="searchPanel"
+              class="search-panel"
+              hidden
+              aria-label="Saved location search results"
+            >
+              <div class="section-head">
+                <h2 class="title-l">Your saved places</h2>
+                <button class="tchip" id="closeSearch" type="button">
+                  Close
+                </button>
+              </div>
+              <p id="locationStatus" role="status"></p>
+              <div id="locationResults" class="location-results"></div>
+              <button
+                class="tchip"
+                id="moreSearchLocations"
+                type="button"
+                hidden
+              >
+                More saved locations
+              </button>
+              <p class="small muted">
+                Looking for a worldwide forecast?
+                <a href="index.html">Explore weather</a>
+              </p>
+            </section>
+            <section class="hero" id="hero" aria-live="polite"></section>
+            <section
+              class="glance"
+              id="glance"
+              aria-label="At a glance"
+            ></section>
+            <section class="section" aria-labelledby="readingsTitle">
+              <div class="section-head">
+                <h2 class="headline-m" id="readingsTitle">Readings</h2>
+                <span class="count" id="count">0</span>
+                <span style="flex: 1"></span>
+                <button
+                  class="icon-btn tonal sm"
+                  id="refreshBtn"
+                  type="button"
+                  aria-label="Refresh (GET /weathers)"
+                  title="GET /weathers"
+                >
+                  <span class="sym">refresh</span>
+                </button>
+              </div>
+              <div
+                class="filters"
+                id="filters"
+                role="toolbar"
+                aria-label="Filter by condition"
+              ></div>
+              <div class="paging">
+                <p id="feedScope">All locations</p>
+                <button class="tchip" id="allLocations" type="button" hidden>
+                  All locations
+                </button>
+              </div>
+              <div class="cards" id="cards"></div>
+              <div class="paging">
+                <p id="feedStatus" role="status"></p>
+                <button class="btn text" id="moreReadings" type="button" hidden>
+                  Load more readings
+                </button>
+              </div>
+            </section>
+          </div>
+          <section
+            data-pane="history"
+            hidden
+            class="section history"
+            id="townHistory"
+            aria-labelledby="historyTitle"
+          >
+            <div class="section-head">
+              <h2 class="headline-m" id="historyTitle" tabindex="-1">
+                Location history
+              </h2>
+              <label class="history-control history-units"
+                ><span>Units</span
+                ><select id="historyUnits">
+                  <option value="metric">°C · km/h</option>
+                  <option value="imperial">°F · mph</option>
+                </select></label
+              >
+            </div>
+            <p class="history-note">
+              One place, over time. Explore the measurements you recorded, with
+              dates and units that suit you.
+            </p>
+            <div
+              class="connected metric-buttons"
+              role="group"
+              aria-label="History measurement"
+            >
+              <button
+                type="button"
+                data-metric="temperatureC"
+                aria-pressed="true"
+              >
+                Temperature</button
+              ><button
+                type="button"
+                data-metric="humidityPct"
+                aria-pressed="false"
+              >
+                Humidity</button
+              ><button type="button" data-metric="windKph" aria-pressed="false">
+                Wind
+              </button>
+            </div>
+            <div class="history-controls">
+              <label class="history-control"
+                ><span>Location</span
+                ><select id="historyTown" aria-label="History location"></select
+              ></label>
+              <label class="history-control metric-select"
+                ><span>Measurement</span
+                ><select id="historyMetric">
+                  <option value="temperatureC">Temperature</option>
+                  <option value="humidityPct">Humidity</option>
+                  <option value="windKph">Wind speed</option>
+                </select></label
+              >
+              <label class="history-control"
+                ><span>From</span><input id="historyFrom" type="date"
+              /></label>
+              <label class="history-control"
+                ><span>Through</span><input id="historyTo" type="date"
+              /></label>
+            </div>
+            <button class="tchip" id="moreTownOptions" type="button" hidden>
+              More towns
+            </button>
+            <button class="tchip" id="historyReset" type="button">
+              All dates
+            </button>
+            <p class="form-error" id="historyError" role="alert"></p>
+            <div class="history-chart" id="historyChart"></div>
+            <div class="paging">
+              <p class="history-note" id="historyStatus" role="status"></p>
+              <button class="tchip" id="moreHistory" type="button" hidden>
+                Load older readings
+              </button>
+            </div>
+            <div
+              class="history-table"
+              id="historyTable"
+              tabindex="0"
+              role="region"
+              aria-label="Town readings, scroll for more"
+            ></div>
+            <p class="history-note">
+              Converted table values are rounded to 12 significant digits. Dates
+              use your local time. Observation time is used when supplied;
+              otherwise recorded time is used. Lines break at missing
+              measurements. Editing or deleting a reading changes this view; it
+              is not an edit log.
+            </p>
+          </section>
+        </div>
+
+        <aside class="col-side" data-pane="connection">
+          <section class="hood" aria-labelledby="hoodTitle">
+            <h2 class="title-l" id="hoodTitle">Under the hood</h2>
+            <div class="body-m muted">
+              Inspect the last request to your connected Weather Board API.
+            </div>
+            <ol class="steps" id="steps">
+              <li class="step" data-n="0">
+                <div class="glyph shape"><span class="sym">devices</span></div>
+                <div>
+                  <div class="t">Client</div>
+                  <div class="d" id="s0">this page</div>
+                </div>
+              </li>
+              <li class="step" data-n="1">
+                <div class="glyph shape">
+                  <span class="sym">door_front</span>
+                </div>
+                <div>
+                  <div class="t">API Gateway</div>
+                  <div class="d" id="s1">WeatherApi · stage dev</div>
+                </div>
+              </li>
+              <li class="step" data-n="2">
+                <div class="glyph shape"><b>λ</b></div>
+                <div>
+                  <div class="t">Lambda</div>
+                  <div class="d" id="s2">waiting for a request</div>
+                </div>
+              </li>
+              <li class="step" data-n="3">
+                <div class="glyph shape"><span class="sym">database</span></div>
+                <div>
+                  <div class="t">DynamoDB</div>
+                  <div class="d" id="s3">WeatherTable</div>
+                </div>
+              </li>
+            </ol>
+            <div class="lastcall" id="lastCall">
+              <span class="sym muted">history</span
+              ><span class="muted">No requests yet</span>
+            </div>
+            <div class="log" id="log"></div>
+            <details class="resp" id="resp" hidden>
+              <summary>
+                <span class="sym" style="font-size: 20px">api</span>Last
+                response body
+              </summary>
+              <pre id="respBody"></pre>
+            </details>
+          </section>
+        </aside>
+
+        <footer class="page">
+          A personal weather journal, built with AWS SAM, Lambda and DynamoDB.
+          Worldwide forecasts are available in
+          <a href="index.html">Explore weather</a>.
+        </footer>
+      </main>
+    </div>
+
+    <button hidden class="fab" id="fab" type="button">
+      <span class="sym">add</span><span class="label">New reading</span>
+    </button>
+
+    <div class="scrim" id="scrim"></div>
+    <aside
+      class="sheet"
+      id="sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="sheetTitle"
+      aria-hidden="true"
+      inert
+    >
+      <header>
+        <h2 class="headline-m" id="sheetTitle">New reading</h2>
+        <button
+          class="icon-btn"
+          id="closeSheet"
+          type="button"
+          aria-label="Close"
+        >
+          <span class="sym">close</span>
+        </button>
+      </header>
+      <form class="body" id="readingForm" novalidate>
+        <div class="field">
+          <label for="town">Town</label>
+          <input id="town" maxlength="60" autocomplete="off" placeholder=" " />
+          <div class="help" id="townHelp">Where was this reading taken?</div>
+        </div>
+        <div class="towns" id="townChips"></div>
+        <div class="picker-label">
+          <span class="title-m">Condition</span
+          ><span class="label-m muted" id="pickedName"></span>
+        </div>
+        <div
+          class="picker"
+          id="picker"
+          role="radiogroup"
+          aria-label="Condition"
+        ></div>
+        <h3 class="title-m measure-title">The details, if you have them</h3>
+        <p class="measure-help" id="measurementHelp">
+          Add only what you measured. Blank fields stay unknown.
+        </p>
+        <div class="measure-grid">
+          <div class="field">
+            <label for="temperatureC">Temperature (°C)</label
+            ><input
+              id="temperatureC"
+              type="number"
+              min="-100"
+              max="70"
+              step="any"
+              placeholder=" "
+            />
+            <div class="help">-100 to 70 °C</div>
+          </div>
+          <div class="field">
+            <label for="humidityPct">Humidity (%)</label
+            ><input
+              id="humidityPct"
+              type="number"
+              min="0"
+              max="100"
+              step="any"
+              placeholder=" "
+            />
+            <div class="help">0 to 100%</div>
+          </div>
+          <div class="field wide">
+            <label for="windKph">Wind speed (km/h)</label
+            ><input
+              id="windKph"
+              type="number"
+              min="0"
+              max="500"
+              step="any"
+              placeholder=" "
+            />
+            <div class="help">0 to 500 km/h</div>
+          </div>
+          <div class="field">
+            <label for="latitude">Latitude</label
+            ><input
+              id="latitude"
+              type="number"
+              min="-90"
+              max="90"
+              step="any"
+              placeholder=" "
+            />
+            <div class="help">-90 to 90</div>
+          </div>
+          <div class="field">
+            <label for="longitude">Longitude</label
+            ><input
+              id="longitude"
+              type="number"
+              min="-180"
+              max="180"
+              step="any"
+              placeholder=" "
+            />
+            <div class="help">-180 to 180</div>
+          </div>
+          <div class="field wide">
+            <label for="observedAt">Observed at</label
+            ><input id="observedAt" type="datetime-local" step="1" />
+            <div class="help">Your local time</div>
+          </div>
+        </div>
+        <p id="measurementError" class="form-error" role="alert"></p>
+      </form>
+      <footer>
+        <span class="route" id="sheetRoute">POST /create-weather</span>
+        <button class="btn text" type="button" id="cancelSheet">Cancel</button>
+        <button
+          class="btn filled"
+          type="submit"
+          form="readingForm"
+          id="saveBtn"
+        >
+          <span class="sym">check</span><span id="saveLabel">Create</span>
+        </button>
+      </footer>
+    </aside>
+
+    <div class="snack" id="snack" role="status" aria-live="polite">
+      <span class="sym" id="snackIcon">check</span><span id="snackText"></span>
+    </div>
+
+    <script src="history.js"></script>
+    <script src="request-policy.js"></script>
+    <script src="workspace.js"></script>
+  </body>
+</html>

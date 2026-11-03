@@ -3,6 +3,8 @@ import os
 import boto3
 from botocore.exceptions import ClientError
 
+from search_index import public_item
+
 from api_response import get_path_id, respond
 
 dynamodb = boto3.resource('dynamodb')
@@ -21,7 +23,7 @@ def lambda_handler(event, context):
         # is what lets us tell the caller "that item was never there".
         response = table.delete_item(
             Key={"id": weather_id},
-            ConditionExpression="attribute_exists(id)",
+            ConditionExpression="attribute_exists(id) AND attribute_exists(weather)",
             ReturnValues="ALL_OLD",
         )
     except ClientError as e:
@@ -30,4 +32,4 @@ def lambda_handler(event, context):
         print(e)
         return respond(500, {"message": "Weather item not deleted successfully"})
 
-    return respond(200, {"message": "Weather item deleted successfully", "item": response.get('Attributes')})
+    return respond(200, {"message": "Weather item deleted successfully", "item": public_item(response.get('Attributes', {}))})

@@ -6,7 +6,7 @@
     humidityPct: { label: 'Humidity', metric: '%', imperial: '%' },
     windKph: { label: 'Wind speed', metric: 'km/h', imperial: 'mph' },
   };
-  const townKey = town => String(town || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase();
+  const townKey = town => String(town || '').normalize('NFKC').trim().replace(/\s+/g, ' ').toLowerCase();
   const time = item => Date.parse(item.observedAt || item.createdAt || '');
   function value(item, metric, units = 'metric') {
     const raw = item[metric];
