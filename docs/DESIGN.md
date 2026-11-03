@@ -61,3 +61,8 @@ Photographic backgrounds, glassmorphism, glossy 3D weather icons, the generic hi
 - **Robustness:** the Demo mode's id generation falls back when `crypto.randomUUID` is unavailable (pages served over plain `http://`). Transitions stay off until the first theme has painted, so the page never fades in from fallback colours.
 - **Screenshots:** add `?capture` (with `&theme=light|dark`, `&sheet=new`) to keep transitions off for still captures. Headless browsers don't advance CSS transitions and otherwise freeze mid-fade. The images in this folder were made that way.
 - **Verified:** light and dark at desktop width, phone width at 375 px (no horizontal overflow), and the full create → edit → filter → look up → delete flow in Demo mode. Live mode was checked read-only against the deployed API.
+
+
+## 4. Richer readings
+
+Optional measurements extend the existing reading rather than introducing a new highlights grid. The hero uses translucent chips; cards use their condition's secondary container and primary text colors. The scrollable side/bottom sheet uses the existing filled fields, labels, rounded surfaces, and local-time date input. Missing values stay unknown rather than displaying a misleading zero. Source and observation time appear alongside the measurements; Demo mode calls its synthetic records samples. The existing Google Sans Flex, condition shapes, light/dark palettes, and responsive breakpoints remain in use.

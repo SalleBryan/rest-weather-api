@@ -23,25 +23,30 @@ def lambda_handler(event, context):
 
     print(f"weather_id {weather_id} -> {data}")
 
+    data['updatedAt'] = datetime.now(timezone.utc).isoformat(timespec='seconds')
+    names, values, sets, removes = {}, {}, [], []
+    for field, value in data.items():
+        names[f'#{field}'] = field
+        if value is None:
+            removes.append(f'#{field}')
+        else:
+            values[f':{field}'] = value
+            sets.append(f'#{field} = :{field}')
+    expression = 'SET ' + ', '.join(sets)
+    if removes:
+        expression += ' REMOVE ' + ', '.join(removes)
+
     try:
         response = table.update_item(
             Key={
                 'id': weather_id
             },
-            UpdateExpression="set #weather = :weather, #town = :town, #updatedAt = :updatedAt",
+            UpdateExpression=expression,
             # update_item creates the item if it doesn't exist (an "upsert").
             # This condition makes it update existing items only.
             ConditionExpression="attribute_exists(id)",
-            ExpressionAttributeNames={
-                "#weather": "weather",
-                "#town": "town",
-                "#updatedAt": "updatedAt",
-            },
-            ExpressionAttributeValues={
-                ":weather": data['weather'],
-                ":town": data['town'],
-                ":updatedAt": datetime.now(timezone.utc).isoformat(timespec='seconds'),
-            },
+            ExpressionAttributeNames=names,
+            ExpressionAttributeValues=values,
             ReturnValues="ALL_NEW"
         )
     except ClientError as e:

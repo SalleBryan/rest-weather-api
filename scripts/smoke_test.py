@@ -47,11 +47,20 @@ def main():
         return payload
 
     print(f"\nSmoke testing {base_url}\n")
-    created = check('create', 'POST', '/create-weather', 201, {'weather': 'Cold', 'town': 'Douala'})
+    created = check('create', 'POST', '/create-weather', 201, {
+        'weather': 'Cold', 'town': 'Douala', 'temperatureC': 21.5,
+        'humidityPct': 87, 'windKph': 0, 'source': 'manual',
+    })
     weather_id = (created or {}).get('item', {}).get('id', 'missing-id')
 
-    check('read', 'GET', f'/weather/{weather_id}', 200)
-    check('update', 'PUT', f'/weather/{weather_id}', 200, {'weather': 'HOT', 'town': 'Douala'})
+    reading = check('read', 'GET', f'/weather/{weather_id}', 200)
+    updated = check('update', 'PUT', f'/weather/{weather_id}', 200, {'weather': 'HOT', 'town': 'Douala'})
+    for label, item in [('read measurements', reading), ('preserve measurements on update', updated)]:
+        ok = isinstance(item, dict) and all(item.get(k) == v for k, v in {
+            'temperatureC': 21.5, 'humidityPct': 87, 'windKph': 0, 'source': 'manual',
+        }.items())
+        failures += not ok
+        print(f"{'PASS' if ok else 'FAIL'}  {label}")
     items = check('list', 'GET', '/weathers', 200)
     check('delete', 'DELETE', f'/weather/{weather_id}', 200)
     check('read after delete', 'GET', f'/weather/{weather_id}', 404)

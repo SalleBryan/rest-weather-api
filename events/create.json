@@ -5,6 +5,6 @@
     "Content-Type": "application/json"
   },
   "pathParameters": null,
-  "body": "{\"weather\": \"Cold\", \"town\": \"Douala\"}",
+  "body": "{\"weather\": \"Cold\", \"town\": \"Douala\", \"temperatureC\": 21.5, \"humidityPct\": 87, \"windKph\": 12, \"observedAt\": \"2026-11-03T09:15:00+01:00\", \"latitude\": 4.156, \"longitude\": 9.232, \"source\": \"manual\"}",
   "isBase64Encoded": false
 }

@@ -345,6 +345,19 @@ html:not(.ready) *, html:not(.ready) *::before, html:not(.ready) *::after { tran
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
 }
+/* Optional measurements use the existing tonal surfaces and type scale. */
+.measurements { display:flex; flex-wrap:wrap; gap:8px; margin-top:18px; }
+.measurements span { padding:8px 12px; border-radius:var(--r-full); background:rgb(255 255 255 / .16); font-size:15px; font-weight:600; }
+.observation { font-size:13px; line-height:1.6; margin-top:12px; opacity:.85; }
+.card .readout { grid-column:1/-1; display:flex; flex-wrap:wrap; gap:6px; font-size:13px; color:var(--c-p); }
+.card .readout span { border-radius:var(--r-full); padding:6px 10px; background:var(--c-sch); }
+.card .provenance { grid-column:1/-1; font-size:12px; line-height:1.5; color:var(--md-sys-color-on-surface-variant); }
+.measure-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px 12px; }
+.measure-grid .wide { grid-column:1/-1; }
+.measure-grid input { min-width:0; width:100%; }
+.measure-title { margin:28px 0 6px; }
+.measure-help { color:var(--md-sys-color-on-surface-variant); font-size:13px; line-height:1.6; margin:0 0 16px; }
+.form-error { color:var(--md-sys-color-error,#ba1a1a); font-size:13px; line-height:1.5; }
 </style>
 </head>
 <body>
@@ -429,6 +442,17 @@ html:not(.ready) *, html:not(.ready) *::before, html:not(.ready) *::after { tran
     <div class="towns" id="townChips"></div>
     <div class="picker-label"><span class="title-m">Condition</span><span class="label-m muted" id="pickedName"></span></div>
     <div class="picker" id="picker" role="radiogroup" aria-label="Condition"></div>
+    <h3 class="title-m measure-title">The details, if you have them</h3>
+    <p class="measure-help" id="measurementHelp">Add only what you measured. Blank fields stay unknown.</p>
+    <div class="measure-grid">
+      <div class="field"><label for="temperatureC">Temperature (°C)</label><input id="temperatureC" type="number" min="-100" max="70" step="any" placeholder=" "><div class="help">-100 to 70 °C</div></div>
+      <div class="field"><label for="humidityPct">Humidity (%)</label><input id="humidityPct" type="number" min="0" max="100" step="any" placeholder=" "><div class="help">0 to 100%</div></div>
+      <div class="field wide"><label for="windKph">Wind speed (km/h)</label><input id="windKph" type="number" min="0" max="500" step="any" placeholder=" "><div class="help">0 to 500 km/h</div></div>
+      <div class="field"><label for="latitude">Latitude</label><input id="latitude" type="number" min="-90" max="90" step="any" placeholder=" "><div class="help">-90 to 90</div></div>
+      <div class="field"><label for="longitude">Longitude</label><input id="longitude" type="number" min="-180" max="180" step="any" placeholder=" "><div class="help">-180 to 180</div></div>
+      <div class="field wide"><label for="observedAt">Observed at</label><input id="observedAt" type="datetime-local" step="1"><div class="help">Your local time</div></div>
+    </div>
+    <p id="measurementError" class="form-error" role="alert"></p>
   </form>
   <footer>
     <span class="route" id="sheetRoute">POST /create-weather</span>
@@ -538,22 +562,40 @@ $('themeBtn').onclick = () => { modeChoice = isDark() ? 'light' : 'dark'; store.
 // crypto.randomUUID only exists in secure contexts (https, localhost, file); fall back elsewhere.
 const uuid = () => crypto.randomUUID ? crypto.randomUUID()
   : '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
+const MEASUREMENTS = { temperatureC:[-100,70], humidityPct:[0,100], windKph:[0,500], latitude:[-90,90], longitude:[-180,180] };
 const demoTable = new Map();
 (function seedDemo() {
   const now = Date.now();
-  [['Buea', 'Rainy', 1], ['Douala', 'HOT', 3], ['Yaoundé', 'Cloudy', 5], ['Limbe', 'Sunny', 8], ['Bamenda', 'Cold', 26], ['Kribi', 'Windy', 30]].forEach(([town, weather, h]) => {
+  [['Buea', 'Rainy', 1, 21.5, 87, 12], ['Douala', 'HOT', 3, 33, 74, 9], ['Yaoundé', 'Cloudy', 5, 25, 78, 6], ['Limbe', 'Sunny', 8, 29, 71, 14], ['Bamenda', 'Cold', 26, 17, 83, 8], ['Kribi', 'Windy', 30, 27, 76, 28]].forEach(([town, weather, h, temperatureC, humidityPct, windKph]) => {
     const t = new Date(now - h * 3600e3).toISOString().slice(0, 19) + '+00:00';
-    const id = uuid(); demoTable.set(id, { id, weather, town, createdAt: t, updatedAt: t });
+    const id = uuid(); demoTable.set(id, { id, weather, town, temperatureC, humidityPct, windKph, observedAt:t, source:'manual', createdAt: t, updatedAt: t });
   });
 })();
 function validate(body) {
   let data; try { data = JSON.parse(body || ''); } catch { return [null, body ? 'Request body must be valid JSON' : 'Request body is required']; }
-  if (!data || typeof data !== 'object') return [null, 'Request body must be a JSON object'];
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return [null, 'Request body must be a JSON object'];
   for (const f of ['weather', 'town']) {
     if (typeof data[f] !== 'string' || !data[f].trim()) return [null, `'${f}' is required and must be a non-empty string`];
     if (data[f].trim().length > 60) return [null, `'${f}' must be at most 60 characters`];
   }
-  return [{ weather: data.weather.trim(), town: data.town.trim() }, null];
+  const result = { weather: data.weather.trim(), town: data.town.trim() };
+  for (const [field,[low,high]] of Object.entries(MEASUREMENTS)) {
+    if (!(field in data)) continue;
+    const value = data[field];
+    if (value !== null && (typeof value !== 'number' || !Number.isFinite(value) || value < low || value > high)) return [null, `${field} must be between ${low} and ${high}`];
+    result[field] = value;
+  }
+  if (('latitude' in data) !== ('longitude' in data) || (data.latitude == null) !== (data.longitude == null)) return [null, 'Provide latitude and longitude together'];
+  if ('observedAt' in data) {
+    if (data.observedAt !== null && (typeof data.observedAt !== 'string' || !/(Z|[+-]\d{2}:\d{2})$/.test(data.observedAt) || !Number.isFinite(Date.parse(data.observedAt)))) return [null, 'Observation time needs a valid date and timezone'];
+    result.observedAt = data.observedAt === null ? null : new Date(data.observedAt).toISOString();
+  }
+  if ('source' in data) {
+    if (!['manual','imported'].includes(data.source)) return [null, 'Source must be manual or imported'];
+    if (data.source === 'imported' && (typeof data.provider !== 'string' || !data.provider.trim() || data.provider.trim().length > 60)) return [null, 'Imported readings need a provider'];
+    result.source = data.source; result.provider = data.source === 'imported' ? data.provider.trim() : null;
+  } else if ('provider' in data) return [null, 'Provide source with provider'];
+  return [result, null];
 }
 async function demoFetch(method, path, body) {
   await new Promise(r => setTimeout(r, 180 + Math.random() * 260));
@@ -561,7 +603,7 @@ async function demoFetch(method, path, body) {
   const m = path.match(/^\/weather\/([^/]+)$/); const id = m && decodeURIComponent(m[1]);
   if (method === 'POST' && path === '/create-weather') {
     const [d, err] = validate(body); if (err) return [400, { message: err }];
-    const item = { id: uuid(), ...d, createdAt: stamp(), updatedAt: stamp() };
+    const item = { id: uuid(), source:'manual', ...Object.fromEntries(Object.entries(d).filter(([,v]) => v !== null)), createdAt: stamp(), updatedAt: stamp() };
     demoTable.set(item.id, item); return [201, { message: 'Weather successfully created!', item }];
   }
   if (method === 'GET' && path === '/weathers') return [200, [...demoTable.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt))];
@@ -569,7 +611,7 @@ async function demoFetch(method, path, body) {
   if (id && method === 'PUT') {
     if (!demoTable.has(id)) return [404, { message: `Weather item ${id} not found` }];
     const [d, err] = validate(body); if (err) return [400, { message: err }];
-    const item = { ...demoTable.get(id), ...d, updatedAt: stamp() }; demoTable.set(id, item); return [200, item];
+    const item = { ...demoTable.get(id), ...d, updatedAt: stamp() }; Object.keys(item).forEach(k => { if (item[k] === null) delete item[k]; }); demoTable.set(id, item); return [200, item];
   }
   if (id && method === 'DELETE') {
     if (!demoTable.has(id)) return [404, { message: `Weather item ${id} not found` }];
@@ -649,6 +691,17 @@ function ago(s) {
 const fmt = s => { const t = parseTime(s); return isFinite(t) ? t.toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'; };
 const sentence = c => c.key === 'board' ? 'It’s <span class="cond"></span>' : ({ cold: 'It’s cold', hot: 'It’s HOT', windy: 'It’s windy', foggy: 'It’s foggy', stormy: 'It’s stormy', drizzle: 'It’s drizzling' }[c.key] || 'It’s ' + c.label.toLowerCase());
 
+function measurementHTML(it) {
+  return [['temperatureC','°C'],['humidityPct','% humidity'],['windKph','km/h wind']]
+    .filter(([key]) => it[key] !== null && it[key] !== undefined)
+    .map(([key,unit]) => `<span>${esc(String(it[key]))} ${unit}</span>`).join('');
+}
+function observationText(it) {
+  const source = mode === 'demo' ? 'Demo sample' : it.source === 'imported' ? `Imported · ${it.provider || 'Unspecified provider'}` : 'Manual observation';
+  const time = it.observedAt ? `Observed ${fmt(it.observedAt)}` : 'Observation time not supplied';
+  const location = it.latitude != null && it.longitude != null ? ` · ${it.latitude}, ${it.longitude}` : '';
+  return `${source} · ${time}${location}`;
+}
 function renderHero() {
   const hero = $('hero'); const latest = items[0];
   if (!latest) {
@@ -666,10 +719,12 @@ function renderHero() {
     hero.className = 'hero';
     hero.innerHTML = `<div class="copy"><span class="eyebrow"><span class="sym">history</span><span class="ew"></span></span>
       <h1 class="display-hero"></h1><div class="where display-s"><span class="sym">location_on</span><span class="town"></span></div>
-      <div class="meta"><button class="chip" type="button" data-act="edit"><span class="sym">edit</span>Edit</button><button class="chip mono idchip" type="button" title="Copy id"><span class="sym">content_copy</span><span class="idt"></span></button><span class="chip when"></span></div></div>
+      <div class="meta"><button class="chip" type="button" data-act="edit"><span class="sym">edit</span>Edit</button><button class="chip mono idchip" type="button" title="Copy id"><span class="sym">content_copy</span><span class="idt"></span></button><span class="chip when"></span></div><div class="measurements"></div><div class="observation"></div></div>
       <div class="hero-art"><div class="back shape"></div><div class="front shape"><span class="sym"></span></div></div>`;
     setShape(hero.querySelector('.back'), 'circle'); setShape(hero.querySelector('.front'), 'circle');
   }
+  hero.querySelector('.measurements').innerHTML = measurementHTML(latest);
+  hero.querySelector('.observation').textContent = observationText(latest);
   hero.querySelector('.ew').textContent = 'Latest reading · ' + ago(latest.updatedAt || latest.createdAt);
   hero.querySelector('h1').innerHTML = sentence(c);
   if (c.key === 'board') hero.querySelector('h1 .cond').textContent = latest.weather.toLowerCase();
@@ -725,10 +780,12 @@ function renderCards() {
     el.setAttribute('style', cardVars(c.key));
     el.innerHTML = `<div class="glyph shape"><span class="sym">${c.icon}</span></div>
       <div><div class="town"></div><div class="cond"></div><div class="when"></div></div>
+      <div class="readout">${measurementHTML(it)}</div><div class="provenance"></div>
       <div class="foot">
         <button class="id" type="button" title="Copy id"><span class="sym">content_copy</span><span></span></button>
         <button class="icon-btn sm" type="button" data-a="edit" aria-label="Edit"><span class="sym">edit</span></button>
         <button class="icon-btn sm" type="button" data-a="del" aria-label="Delete"><span class="sym">delete</span></button></div>`;
+    el.querySelector('.provenance').textContent = observationText(it);
     el.querySelector('.town').textContent = it.town;
     el.querySelector('.cond').textContent = it.weather;
     el.querySelector('.when').textContent = (it.updatedAt && it.updatedAt !== it.createdAt ? 'Updated ' : 'Created ') + ago(it.updatedAt || it.createdAt);
@@ -814,6 +871,11 @@ function openSheet(it) {
   $('saveLabel').textContent = it ? 'Save' : 'Create';
   $('sheetRoute').textContent = it ? `PUT /weather/${it.id.slice(0, 8)}…` : 'POST /create-weather';
   $('town').value = it ? it.town : '';
+  for (const key of Object.keys(MEASUREMENTS)) $(key).value = it?.[key] ?? '';
+  const observed = it?.observedAt ? new Date(it.observedAt) : null;
+  $('observedAt').value = observed && Number.isFinite(observed.getTime()) ? new Date(observed.getTime() - observed.getTimezoneOffset()*60000).toISOString().slice(0,19) : '';
+  $('measurementHelp').textContent = it?.source === 'imported' ? 'Saving edits marks this as a manual observation. Clear a field to remove it.' : 'Add only what you measured. Blank fields stay unknown.';
+  $('measurementError').textContent = '';
   selected = it ? (conditionOf(it.weather) === OTHER ? 'Rainy' : conditionOf(it.weather).label) : selected;
   $('townHelp').className = 'help'; $('townHelp').textContent = 'Where was this reading taken?';
   renderPicker(); renderCards();
@@ -832,10 +894,21 @@ $('readingForm').onsubmit = async e => {
   e.preventDefault();
   const town = $('town').value.trim();
   if (!town) { $('townHelp').className = 'help err'; $('townHelp').textContent = 'Town is required'; $('town').focus(); return; }
+  const payload = { weather: selected, town, source:'manual' };
+  for (const key of Object.keys(MEASUREMENTS)) {
+    const input = $(key);
+    if (input.validity.badInput) { $('measurementError').textContent = 'Enter a valid number'; input.focus(); return; }
+    payload[key] = input.value === '' ? null : Number(input.value);
+  }
+  const date = $('observedAt');
+  if (date.validity.badInput || (date.value && !Number.isFinite(new Date(date.value).getTime()))) { $('measurementError').textContent = 'Enter a valid observation time'; date.focus(); return; }
+  payload.observedAt = date.value ? new Date(date.value).toISOString() : null;
+  const [, error] = validate(JSON.stringify(payload));
+  if (error) { $('measurementError').textContent = error; return; }
+  $('measurementError').textContent = '';
   const btn = $('saveBtn'); btn.disabled = true;
   const icon = btn.firstElementChild; const holder = document.createElement('span'); holder.className = 'loader bare'; holder.innerHTML = '<i class="shape"></i>';
   icon.replaceWith(holder); startLoader(holder.firstElementChild);
-  const payload = { weather: selected, town };
   const [status, data] = editingId ? await api('PUT', `/weather/${encodeURIComponent(editingId)}`, payload) : await api('POST', '/create-weather', payload);
   holder.replaceWith(icon); btn.disabled = false;
   if (status === 200 || status === 201) {

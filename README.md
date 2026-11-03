@@ -31,7 +31,7 @@ The **whole backend** (API, five functions, the table and every permission betwe
 | `scripts/smoke_test.py` | Runs the full CRUDL cycle against any deployed URL and prints PASS/FAIL per request |
 | `scripts/local_api.py` | Runs the real handlers on `http://localhost:3000/dev` with an in-memory DynamoDB (no AWS, no Docker) |
 | `events/` | Sample API Gateway events for `sam local invoke` |
-| `tests/` | 19 unit tests (pytest + moto) |
+| `tests/` | 42 unit tests (pytest + moto) |
 
 ---
 
@@ -56,6 +56,42 @@ An item looks like:
 }
 ```
 
+
+### Optional observation details
+
+Existing `{ "weather": "Rainy", "town": "Buea" }` requests still work. You can also send:
+
+```json
+{
+  "weather": "Rainy",
+  "town": "Buea",
+  "temperatureC": 21.5,
+  "humidityPct": 87,
+  "windKph": 12,
+  "observedAt": "2026-11-03T09:15:00+01:00",
+  "latitude": 4.156,
+  "longitude": 9.232,
+  "source": "manual"
+}
+```
+
+| Field | Validation |
+| --- | --- |
+| `temperatureC` | JSON number, -100 to 70 °C |
+| `humidityPct` | JSON number, 0 to 100% |
+| `windKph` | JSON number, 0 to 500 km/h |
+| `latitude`, `longitude` | Supply together; -90 to 90 and -180 to 180 |
+| `observedAt` | ISO 8601 date/time with a timezone; normalized to UTC |
+| `source` | `manual` (default for new readings) or `imported` |
+| `provider` | Required with `source: "imported"`; a non-empty name up to 60 characters |
+
+On PUT, omitted details are preserved; explicit `null` removes an optional detail. Clear coordinates together. Changing the source to `manual` removes the provider. Numbers stay JSON numbers throughout DynamoDB storage and API responses. Old readings without measurements remain valid, with unknown values left blank.
+
+The dashboard shows measurements, observation time, coordinates, and provenance in the existing condition theme. Its form records manual observations; editing an imported record marks it manual. Imported provenance is caller-supplied metadata, not verification of a provider. Automatic provider fetching is not included in this step. Demo data is explicitly labeled **Demo sample** and is not live weather.
+
+![Optional measurements in the reading form](docs/dashboard-new-reading.png)
+
+
 ---
 
 ## Run it without AWS (2 minutes)
@@ -64,7 +100,7 @@ You need [uv](https://docs.astral.sh/uv/) (it installs the right Python for you)
 
 ```powershell
 uv sync                                  # install test/dev tools into .venv
-uv run pytest                            # 19 tests against a mocked DynamoDB
+uv run pytest                            # 42 tests against a mocked DynamoDB
 uv run python scripts/local_api.py       # API on http://localhost:3000/dev
 ```
 

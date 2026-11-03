@@ -25,8 +25,8 @@ def lambda_handler(event, context):
         # uuid4 instead of a random 3-digit number: 899 possible ids gives a ~50% chance
         # of two items colliding (and one silently overwriting the other) after just 36 items.
         'id': str(uuid.uuid4()),
-        'weather': data['weather'],
-        'town': data['town'],
+        **{key: value for key, value in data.items() if value is not None},
+        'source': data.get('source', 'manual'),
         'createdAt': now,
         'updatedAt': now,
     }

@@ -20,7 +20,7 @@
       "request": {
         "method": "POST",
         "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": { "mode": "raw", "raw": "{\n  \"weather\": \"Cold\",\n  \"town\": \"Douala\"\n}", "options": { "raw": { "language": "json" } } },
+        "body": { "mode": "raw", "raw": "{\n  \"weather\": \"Cold\",\n  \"town\": \"Douala\",\n  \"temperatureC\": 21.5,\n  \"humidityPct\": 87,\n  \"windKph\": 12,\n  \"source\": \"manual\"\n}", "options": { "raw": { "language": "json" } } },
         "url": "{{baseUrl}}/create-weather"
       }
     },
