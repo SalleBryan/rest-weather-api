@@ -421,14 +421,14 @@ html:not(.ready) *, html:not(.ready) *::before, html:not(.ready) *::after { tran
     </section>
     <section class="section history" id="townHistory" aria-labelledby="historyTitle">
       <div class="section-head"><h2 class="headline-m" id="historyTitle" tabindex="-1">Town history</h2>
-        <label class="history-control history-units">Units<select id="historyUnits"><option value="metric">°C · km/h</option><option value="imperial">°F · mph</option></select></label>
+        <label class="history-control history-units"><span>Units</span><select id="historyUnits"><option value="metric">°C · km/h</option><option value="imperial">°F · mph</option></select></label>
       </div>
       <p class="history-note">Explore your saved readings over time. Demo samples are illustrative, not live weather.</p>
       <div class="history-controls">
-        <label class="history-control">Town<select id="historyTown" aria-label="History town"></select></label>
-        <label class="history-control">Measurement<select id="historyMetric"><option value="temperatureC">Temperature</option><option value="humidityPct">Humidity</option><option value="windKph">Wind speed</option></select></label>
-        <label class="history-control">From<input id="historyFrom" type="date"></label>
-        <label class="history-control">Through<input id="historyTo" type="date"></label>
+        <label class="history-control"><span>Town</span><select id="historyTown" aria-label="History town"></select></label>
+        <label class="history-control"><span>Measurement</span><select id="historyMetric"><option value="temperatureC">Temperature</option><option value="humidityPct">Humidity</option><option value="windKph">Wind speed</option></select></label>
+        <label class="history-control"><span>From</span><input id="historyFrom" type="date"></label>
+        <label class="history-control"><span>Through</span><input id="historyTo" type="date"></label>
       </div>
       <button class="tchip" id="historyReset" type="button">All dates</button>
       <p class="form-error" id="historyError" role="alert"></p>
