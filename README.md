@@ -132,7 +132,7 @@ The free hosted service is for non-commercial use; commercial use requires an ap
 
 | Control | Behavior |
 | --- | --- |
-| Explicit requests | No startup weather fetch, background polling, or automatic retries. Location suggestions load after three characters and a 450 ms pause. Submit searches of two or more characters immediately, select a place, or press Refresh. Suggestions share the existing allowance and geocoding cache. |
+| Explicit requests | Weather startup requests device location permission and loads one forecast if allowed. No background polling or automatic retries. Location suggestions load after three characters and a 450 ms pause. Submit searches of two or more characters immediately, select a place, or press Refresh. Suggestions share the existing allowance and geocoding cache. |
 | Persistent allowance | At most 10 fetch attempts/minute and 100/UTC day per browser origin. Searches and forecasts share the weather allowance; Your API has a separate allowance, shared across its base URLs. Failed network/provider attempts count. |
 | Cross-tab coordination | Web Locks serialize allowance reservations where supported. A localStorage counter survives reloads; unavailable or corrupt budget storage blocks new requests. These are browser controls, not tamper-resistant quotas. |
 | Cache | Forecast responses last 15 minutes; geocoding responses 24 hours. At most 30 cache entries. Cache hits and duplicate simultaneous GETs do not consume more requests. Refresh honors the cache. |
@@ -288,9 +288,16 @@ The [research registry](docs/research/README.md) reviews 169 distinct platforms/
 
 - **Places:** up to 12 favorites and eight recent places, with saved forecast age, explicit removal, and clear-local-data controls. All lists are local to the browser.
 - **Daily detail:** choose any of seven days for an adaptive modal sheet with hourly temperature and rain probability, semantic table, keyboard dismissal, timezone, and original fetch time. No extra provider request.
-- **Offline:** an installable app shell and eight bounded forecast snapshots. Startup restores the last snapshot without requesting data. Forecasts older than 15 minutes are labeled stale; refresh is explicit. The service worker caches only static assets, never journal API responses or tokens.
+- **Offline:** an installable app shell and eight bounded forecast snapshots. Startup restores the last snapshot immediately; online Weather then checks the current device position with permission. Offline startup makes no provider requests. Forecasts older than 15 minutes are labeled stale; further refreshes are explicit. The service worker caches only static assets, never journal API responses or tokens.
 - **Compare:** up to three places, common units, per-place timezone/fetch time, hourly comparisons aligned by UTC, exact values in a table, and explicit cached refresh. Missing values break chart lines.
 - **Forecast import:** create a short-lived draft from Weather, connect Your API, inspect the payload and model timestamp, then save once. It retains imported source, Open-Meteo provider, coordinates, temperature/humidity/wind, and original model time in `observedAt`. Imports are model estimates, not station observations. No automatic POST retries.
 - **Navigation and security:** Weather, Places, Compare, and Your API share adaptive navigation and tonal roles. Self-hosted fonts, reduced motion, accessible native dialogs, strict hosted headers, owner authorization, and no production auto-build/preview pipeline.
 
 Serve `web/` on localhost or HTTPS. The service worker updates after old app tabs close; close/reopen existing tabs after deploying an update. [Hosting instructions and cost notes](docs/HOSTING.md) cover manual deployment and the private owner credential.
+
+
+### Current location on startup
+
+Opening Weather now asks the browser for location permission, then loads the forecast near the device automatically. Previously authorized browsers can do this without another prompt. A fresh device position is requested once per Weather page load with an eight-second timeout and high-accuracy GPS disabled; there is no continuous tracking. Coordinates are rounded to two decimals before sending them to Open-Meteo or saving them locally. No IP-location service or paid API was added. The normal request allowance and 15-minute forecast cache still apply.
+
+The Use my current location action checks again explicitly. Manual search or selecting another place cancels the pending location result so it cannot replace your selection. Denied, unsupported, unavailable, and timed-out location requests leave search and saved weather available. Offline forecasts from a previous device position are labeled Last known location. Deep links to Places or Compare do not request the device's location. Clear local weather in Places removes these saved snapshots and coordinates.

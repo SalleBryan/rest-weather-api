@@ -1,6 +1,26 @@
 .library-main {
   min-width: 0;
 }
+.current-location-control {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 16px 4px 8px;
+}
+.current-location-control button {
+  flex: none;
+}
+.current-location-control p {
+  margin: 0;
+  max-width: 620px;
+}
+@media (max-width: 650px) {
+  .current-location-control {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+}
 .skip {
   bottom: auto;
   left: 0;

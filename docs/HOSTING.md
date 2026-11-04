@@ -39,3 +39,10 @@ Use Amplify `create-deployment` for the app's `main` branch, upload that ZIP to 
 Increment the service-worker version whenever runtime assets change. Keep HTML revalidated and the worker uncached; locally served fonts have bounded long-lived caching. No SPA catch-all rewrites are needed: the two actual HTML pages and hash destinations work directly.
 
 Primary deployment references: [manual deployment](https://docs.aws.amazon.com/amplify/latest/userguide/manual-deploys.html), [custom headers](https://docs.aws.amazon.com/amplify/latest/userguide/setting-custom-headers.html), [security practices](https://docs.aws.amazon.com/amplify/latest/userguide/security-best-practices.html), and [Lambda authorizers](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-use-lambda-authorizer.html).
+
+
+## Current-location weather
+
+Weather requests a fresh browser device position once on startup (eight-second timeout, no high-accuracy requirement), subject to browser permission. It rounds coordinates to two decimal places before a single Open-Meteo forecast lookup. The forecast shares the existing cache and request allowance; there is no reverse-geocoding service, IP lookup, paid API, background location watch, or AWS weather API request. Approximate coordinates and snapshots can be saved in browser-local Places data and cleared there. Offline startup displays a last-known snapshot without requesting a position or weather. Manual selections cancel pending automatic results.
+
+Permissions-Policy allows geolocation only for this site's origin; Your API keeps geolocation disabled. Other restricted device permissions remain disabled. The [browser API](https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/getCurrentPosition) requires a secure context and user permission, and the [geolocation policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Permissions-Policy/geolocation) must allow the feature. The former geolocation=() policy is replaced for Weather, including the app-level Amplify headers and the manual deployment file. No changes to cost alerts, API authorization, or auto-build settings are needed.

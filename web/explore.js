@@ -113,10 +113,13 @@ function render() {
   $("welcome").hidden = true;
   $("weatherContent").hidden = false;
   $("currentWeather").innerHTML =
-    `<div class="current-top"><div><p class="eyebrow">Current model estimate</p><h2 id="placeName" tabindex="-1">${esc(selectedPlace.name)}</h2><p class="place-meta">${esc(region || `${selectedPlace.latitude.toFixed(3)}, ${selectedPlace.longitude.toFixed(3)}`)} · ${esc(local(current.time, { weekday: "short", hour: "numeric", minute: "2-digit" }))}</p></div><button id="refreshWeather" type="button" class="icon-btn" aria-label="Refresh this forecast (uses cache for 15 minutes)"><span class="sym">refresh</span></button></div>
+    `<div class="current-top"><div><p class="eyebrow">Current model estimate</p><h2 id="placeName" tabindex="-1">${esc(selectedPlace.name === "Current location" && !receipt.located ? "Last known location" : selectedPlace.name)}</h2><p class="place-meta">${esc(region || `${selectedPlace.latitude.toFixed(3)}, ${selectedPlace.longitude.toFixed(3)}`)} · ${esc(local(current.time, { weekday: "short", hour: "numeric", minute: "2-digit" }))}</p></div><button id="refreshWeather" type="button" class="icon-btn" aria-label="Refresh this forecast (uses cache for 15 minutes)"><span class="sym">refresh</span></button></div>
     <div class="current-body"><div><div class="temperature" aria-label="${esc(temp(current.temperature_2m))} ${units === "imperial" ? "Fahrenheit" : "Celsius"}">${temp(current.temperature_2m)}</div><p class="condition-label">${esc(condition)}</p><span class="feels">Feels like ${temp(current.apparent_temperature)} · ${units === "imperial" ? "°F" : "°C"}</span></div><div class="weather-art" data-kind="${key}" aria-hidden="true"><span class="sym">${icon}</span></div></div>
     <div class="current-measures"><div><span class="sym">humidity_percentage</span><span><b>${finite(current.relative_humidity_2m) ? number(current.relative_humidity_2m) + "%" : "Unavailable"}</b><small>Humidity</small></span></div><div><span class="sym">air</span><span><b>${wind(current.wind_speed_10m)}</b><small>Wind speed</small></span></div><div><span class="sym">device_thermostat</span><span><b>${temp(weather.daily.temperature_2m_min?.[0])} / ${temp(weather.daily.temperature_2m_max?.[0])}</b><small>Today’s low / high</small></span></div></div><p class="observation-line">${receipt.cached ? "Cached forecast" : "Forecast fetched"} at ${esc(new Date(receipt.fetchedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }))} · ${esc(weather.timezone)} · Model time ${esc(local(current.time, { hour: "2-digit", minute: "2-digit" }))}</p>`;
-  $("refreshWeather").onclick = () => loadForecast(selectedPlace);
+  $("refreshWeather").onclick = () =>
+    selectedPlace.name === "Current location"
+      ? locateWeather()
+      : loadForecast(selectedPlace);
   const indices = weather.hourly.time
     .map((time, index) => ({ time, index }))
     .filter((it) => it.time >= Math.floor(current.time / 3600) * 3600)
@@ -176,7 +179,12 @@ function render() {
     .querySelectorAll(".day-row .sym")
     .forEach((el) => el.removeAttribute("aria-hidden"));
 }
-async function loadForecast(place) {
+async function loadForecast(
+  place,
+  { automatic = false, located = false } = {},
+) {
+  if (!located && typeof cancelLocationLookup === "function")
+    cancelLocationLookup();
   const version = ++forecastVersion;
   placeSuggestions.close();
   status("Getting the forecast for " + place.name + "…");
@@ -201,11 +209,12 @@ async function loadForecast(place) {
       ...place,
       ...OpenMeteo.coordinates(place.latitude, place.longitude),
     };
-    receipt = result;
+    receipt = { ...result, located };
     selectedPlace = library.save(selectedPlace, data, result.fetchedAt);
     render();
     status("");
-    $("placeName").focus({ preventScroll: true });
+    if (!automatic) $("placeName").focus({ preventScroll: true });
+    return true;
   } catch (error) {
     if (version === forecastVersion) {
       const fallback = library.snapshot(PlaceStore.place(place).id);
@@ -214,6 +223,7 @@ async function loadForecast(place) {
         `${error.name === "AbortError" ? "The provider took too long. Try again." : error.message}${fallback ? " Showing the last saved forecast for " + place.name + "." : weather ? " Still showing " + selectedPlace.name + "." : ""}`,
         true,
       );
+      return false;
     }
   } finally {
     if (version === forecastVersion)

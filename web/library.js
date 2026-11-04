@@ -2,6 +2,95 @@
 let destination = "weather",
   comparisonBusy = false;
 let comparisonVersion = 0;
+let locationVersion = 0,
+  locationBusy = false;
+function cancelLocationLookup() {
+  if (!locationBusy) return;
+  ++locationVersion;
+  ++forecastVersion;
+  locationBusy = false;
+  $("locationBtn").disabled = false;
+  $("locationBtn").removeAttribute("aria-busy");
+  $("weatherContent").setAttribute("aria-busy", "false");
+  status("");
+  $("locationNote").textContent =
+    "Automatic location lookup paused. Search for a place, or choose Use my current location.";
+}
+async function locateWeather({ automatic = false } = {}) {
+  if (locationBusy) return;
+  const note = $("locationNote");
+  if (!navigator.onLine) {
+    note.textContent =
+      "Offline. Your saved forecast stays available; current location needs a connection.";
+    return;
+  }
+  if (!window.isSecureContext || !navigator.geolocation) {
+    note.textContent =
+      "Location is unavailable in this browser. Search for a place instead.";
+    return;
+  }
+  const version = ++locationVersion;
+  locationBusy = true;
+  $("locationBtn").disabled = true;
+  $("locationBtn").setAttribute("aria-busy", "true");
+  note.textContent =
+    "Finding your location… Allow location access when your browser asks. Only approximate coordinates are sent to Open-Meteo.";
+  const finish = () => {
+    if (version === locationVersion) {
+      locationBusy = false;
+      $("locationBtn").disabled = false;
+      $("locationBtn").removeAttribute("aria-busy");
+    }
+  };
+  const failure = (error) => {
+    if (version !== locationVersion) return;
+    const reason =
+      error.code === 1
+        ? "Location access is off. Allow it in your browser site settings to use your current location."
+        : error.code === 3
+          ? "Location lookup timed out. Try again or search for a place."
+          : "Your device could not find its location. Try again or search for a place.";
+    note.textContent =
+      reason +
+      (weather
+        ? " The saved or selected forecast remains visible."
+        : " You can search worldwide above.");
+    finish();
+  };
+  try {
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        if (version !== locationVersion) return;
+        try {
+          // Roughly kilometre precision is sufficient for model weather; no accuracy/GPS history is sent.
+          const point = OpenMeteo.coordinates(
+            Number(position.coords.latitude.toFixed(2)),
+            Number(position.coords.longitude.toFixed(2)),
+          );
+          note.textContent = "Location found. Loading weather near you…";
+          const loaded = await loadForecast(
+            { ...point, name: "Current location" },
+            { automatic, located: true },
+          );
+          if (version === locationVersion)
+            note.textContent = loaded
+              ? "Using approximate device coordinates. Forecasts cache for 15 minutes; location is checked once per page load, with no continuous tracking. Saved location data can be cleared in Places."
+              : "Location found, but its forecast could not be loaded. See the message below; you can still search or open a saved place.";
+        } catch {
+          if (version === locationVersion)
+            note.textContent =
+              "The device returned an unusable location. Search for a place or try again.";
+        } finally {
+          finish();
+        }
+      },
+      failure,
+      { enableHighAccuracy: false, maximumAge: 0, timeout: 8000 },
+    );
+  } catch {
+    failure({ code: 2 });
+  }
+}
 const compareErrors = new Map();
 const stamp = (time) =>
   new Date(time).toISOString().slice(0, 16).replace("T", " ") + " UTC";
@@ -148,6 +237,7 @@ function changeDestination() {
   destination = ["places", "compare"].includes(location.hash.slice(1))
     ? location.hash.slice(1)
     : "weather";
+  if (destination !== "weather") cancelLocationLookup();
   for (const name of ["weather", "places", "compare"])
     $(name + "View").hidden = destination !== name;
   document.querySelectorAll("[data-destination]").forEach((a) => {
@@ -375,6 +465,7 @@ for (const id of ["dayDialog", "clearDialog"])
 $("clearPlaces").onclick = () => $("clearDialog").showModal();
 $("cancelClear").onclick = () => $("clearDialog").close();
 $("confirmClear").onclick = () => {
+  cancelLocationLookup();
   ++forecastVersion;
   ++comparisonVersion;
   placeSuggestions.close();
@@ -405,6 +496,11 @@ const lastSnapshot = validSnapshot(library.snapshot(library.latest()));
 if (lastSnapshot) showSnapshot(lastSnapshot);
 changeDestination();
 connectivity();
+$("locationBtn").onclick = () => locateWeather();
+$("placeInput").addEventListener("input", cancelLocationLookup);
+$("worldForm").addEventListener("submit", cancelLocationLookup);
+$("coordinateForm").addEventListener("submit", cancelLocationLookup);
+if (destination === "weather") locateWeather({ automatic: true });
 
 // Update age labels without a network request or replacing focused controls.
 function updateAgeLabels() {

@@ -35,3 +35,11 @@ Requested 4 November 2026 by SalleBryan. Monthly AWS alert threshold: **US$3**, 
 - Amplify manual static release 3 succeeded. Verified HTTPS headers on root, both HTML pages, service worker, and fonts. Live browser verified provider suggestions, forecast, favorites, daily detail, and comparison navigation.
 - Validation complete: 61 Python tests, 17 JavaScript tests; deterministic browser flows for place bounds, cached comparisons, import preview/save/token isolation, offline reload, compact layout, clearing data, and existing typeahead regressions. Live API denied anonymous/wrong credentials, allowed owner reads, passed preflight and the full authenticated CRUDL smoke test.
 - Public artifact: 33 assets, approximately 515 KB compressed; no secrets or backend source. Release source is tracked on main; the deployment and validation records above describe the shipped runtime.
+
+
+## Current-location follow-up, 4 November 2026
+
+- Requested current device weather on Weather startup; implemented permission-based one-shot lookup, a manual location action, approximate coordinates, no continuous tracking, and unchanged forecast request/cache limits.
+- Added denied/unavailable/timeout/offline fallbacks and cancellation when the user searches, selects a different place, navigates away, or clears local weather. Saved device-position snapshots are labeled Last known location until a fresh lookup succeeds.
+- Browser checks passed for permission grant, coordinate rounding, cache reuse, changed device position, offline restore, denial/unavailability/timeout, manual-selection races, and deep-link isolation. Existing 17 JavaScript tests and the broader release browser regression passed.
+- Amplify release 4 succeeded. Verified HTTPS 200 responses and geolocation=(self) on Weather, with geolocation still disabled on Your API. Published archive matches the current runtime assets.

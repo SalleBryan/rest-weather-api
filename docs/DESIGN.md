@@ -41,7 +41,7 @@ This study replaces the previous general inspiration survey as the basis for the
 
 ## Verification
 
-The change is checked with Python handler tests, Node tests for history and request policy, and browser flows against a local API. Visual review covers desktop and compact layouts, light/dark modes, location results, forecasts, history, and the reading editor. Tests include delayed responses, provider failures, cache reuse, request exhaustion, zero startup API calls, unit changes without requests, and explicit connection/disconnection. Live Open-Meteo requests verify the integration separately from deterministic fixtures.
+The change is checked with Python handler tests, Node tests for history and request policy, and browser flows against a local API. Visual review covers desktop and compact layouts, light/dark modes, location results, forecasts, history, and the reading editor. Tests include delayed responses, provider failures, cache reuse, request exhaustion, zero startup journal API calls, permission-based current-location weather loading, unit changes without requests, and explicit connection/disconnection. Live Open-Meteo requests verify the integration separately from deterministic fixtures.
 
 
 ## Places, comparison, and day details
@@ -51,3 +51,6 @@ The [169-platform source review](research/README.md) informed this release witho
 Daily forecast rows are full-width buttons. A native modal dialog presents hourly temperature and rain probability using existing downloaded data. Compact screens begin with a bottom sheet capped at half the viewport; an accessible expansion button raises it to 94dvh. Expanded screens use a bounded dialog. Close, Escape, scrim dismissal, focus containment, and focus restoration use native dialog behavior. Exact values remain in a semantic table, including timezone offsets for repeated DST hours.
 
 The carousel guidance was reviewed, but image-like parallax and shrinking items do not improve these data lists. A readable responsive grid avoids hiding saved places behind a gesture. Offline and stale labels remain explicit rather than implying that cached model estimates are live observations.
+
+
+The current-location control uses the same tonal action style beside the coordinate option. On Weather startup, a short status explains the browser permission request and the provider destination. Device lookup never steals focus on automatic completion. If lookup fails, the search and saved forecast remain usable; the button permits an explicit retry. Returning an old current-location snapshot shows Last known location, with fetch time and staleness intact. A late callback cannot replace a manual forecast selection or restart a cleared local library.
