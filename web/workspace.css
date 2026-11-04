@@ -624,3 +624,17 @@ body {
     text-overflow: ellipsis;
   }
 }
+
+#readingsPane {
+  position: relative;
+}
+#readingsPane .search-panel {
+  position: absolute;
+  top: 72px;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  max-height: 60vh;
+  overflow: auto;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.16);
+}

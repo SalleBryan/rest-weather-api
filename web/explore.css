@@ -1062,3 +1062,28 @@ button:active {
     scroll-behavior: auto !important;
   }
 }
+
+/* Suggestions float above content without moving the forecast. */
+.search-region .search-results {
+  position: absolute;
+  top: 80px;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  margin: 0;
+  max-height: min(520px, 65vh);
+  overflow: auto;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.16);
+}
+.place-row[aria-selected="true"] {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: -2px;
+}
+@media (max-width: 650px) {
+  .search-region .search-results {
+    top: 72px;
+    max-height: 55vh;
+  }
+}

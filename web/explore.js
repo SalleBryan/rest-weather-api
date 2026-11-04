@@ -175,8 +175,7 @@ function render() {
 }
 async function loadForecast(place) {
   const version = ++forecastVersion;
-  ++searchVersion;
-  $("searchResults").hidden = true;
+  placeSuggestions.close();
   status("Getting the forecast for " + place.name + "…");
   $("weatherContent").setAttribute("aria-busy", "true");
   try {
@@ -206,12 +205,12 @@ async function loadForecast(place) {
     updateUsage();
   }
 }
-$("worldForm").onsubmit = async (event) => {
-  event.preventDefault();
+async function searchPlaces() {
+  placeSuggestions.cancel();
   const query = $("placeInput").value.trim();
   if (query.length < 2) return;
   const version = ++searchVersion;
-  $("searchResults").hidden = false;
+  placeSuggestions.open();
   $("searchStatus").textContent = "Finding places…";
   $("placeResults").replaceChildren();
   try {
@@ -252,20 +251,25 @@ $("worldForm").onsubmit = async (event) => {
           ? "Location search timed out. Try again."
           : error.message;
   } finally {
+    if (version === searchVersion) placeSuggestions.update();
     updateUsage();
   }
-};
-$("placeInput").oninput = () => {
-  ++searchVersion;
-  $("searchResults").hidden = true;
+}
+const placeSuggestions = Typeahead.attach({
+  input: $("placeInput"),
+  form: $("worldForm"),
+  panel: $("searchResults"),
+  list: $("placeResults"),
+  search: searchPlaces,
+  invalidate: () => ++searchVersion,
+});
+$("worldForm").onsubmit = (event) => {
+  event.preventDefault();
+  searchPlaces();
 };
 $("closeResults").onclick = () => {
-  ++searchVersion;
-  $("searchResults").hidden = true;
+  placeSuggestions.close();
   $("placeInput").focus();
-};
-$("placeInput").onkeydown = (event) => {
-  if (event.key === "Escape") $("closeResults").click();
 };
 $("coordinateForm").onsubmit = (event) => {
   event.preventDefault();

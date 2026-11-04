@@ -990,7 +990,7 @@ function chooseLocation(name, coordinates = null) {
   feedTown = name;
   locationOptions.set(WeatherHistory.townKey(name), name);
   historyTown = WeatherHistory.townKey(name);
-  $("searchPanel").hidden = true;
+  savedSuggestions.close();
   filter = "all";
   refresh();
 }
@@ -1003,13 +1003,14 @@ function resultButton(parent, label, action) {
   $(parent).append(button);
 }
 async function searchSaved(append = false) {
+  savedSuggestions.cancel();
   const version = append ? searchVersion : ++searchVersion;
   if (!append) {
     searchQuery = $("lookupId").value.trim();
     searchCursor = null;
     $("locationResults").replaceChildren();
   }
-  $("searchPanel").hidden = false;
+  savedSuggestions.open();
   $("locationStatus").textContent = "Searching saved locations…";
   $("moreSearchLocations").disabled = true;
   const [status, data] = await api(
@@ -1034,23 +1035,31 @@ async function searchSaved(append = false) {
       data?.message || "Saved location search is unavailable.";
   $("moreSearchLocations").hidden = !searchCursor;
   $("moreSearchLocations").disabled = false;
+  savedSuggestions.update();
 }
 $("moreSearchLocations").onclick = () => searchSaved(true);
+const savedSuggestions = Typeahead.attach({
+  input: $("lookupId"),
+  form: $("searchForm"),
+  panel: $("searchPanel"),
+  list: $("locationResults"),
+  search: () => searchSaved(),
+  invalidate: () => ++searchVersion,
+  eligible: () =>
+    !!connectedBase &&
+    $("searchKind").value === "location" &&
+    $("lookupId").value.trim().length <= 60,
+});
 $("closeSearch").onclick = () => {
-  $("searchPanel").hidden = true;
-  ++searchVersion;
+  savedSuggestions.close();
+  $("lookupId").focus();
 };
 $("searchKind").onchange = () => {
   $("lookupId").placeholder =
     $("searchKind").value === "id"
       ? "Paste a full reading ID"
       : "Search saved towns or cities";
-  $("searchPanel").hidden = true;
-  ++searchVersion;
-};
-$("lookupId").oninput = () => {
-  $("searchPanel").hidden = true;
-  ++searchVersion;
+  savedSuggestions.close();
 };
 $("searchForm").onsubmit = async (e) => {
   e.preventDefault();
@@ -1315,6 +1324,7 @@ function updateByoUsage() {
   }
 }
 function showView(view, load = true) {
+  if (view !== "readings") savedSuggestions.close();
   activeView = connectedBase ? view : "connection";
   document
     .querySelectorAll("[data-pane]")
@@ -1328,6 +1338,7 @@ function showView(view, load = true) {
   renderHistory();
 }
 function disconnect() {
+  savedSuggestions.close();
   apiController.abort();
   apiController = new AbortController();
   connectedBase = "";

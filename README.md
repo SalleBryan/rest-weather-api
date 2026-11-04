@@ -118,9 +118,9 @@ node --test tests/history.test.cjs tests/request-policy.test.cjs
 
 ## Search locations and load pages
 
-The search box defaults to **Location**. Enter a town prefix (for example `bu` for Buea), submit, and choose a saved location to query its readings. Choose **Reading ID** for direct lookup. **All locations** clears the current town filter. The feed loads 20 readings at a time; **Load more readings** requests the next page. Condition filters and summary counts describe loaded readings only.
+The search box defaults to **Location**. Type a town prefix (at least three characters for automatic suggestions), or submit a shorter prefix, and choose a saved location to query its readings. Choose **Reading ID** for direct lookup. **All locations** clears the current town filter. The feed loads 20 readings at a time; **Load more readings** requests the next page. Condition filters and summary counts describe loaded readings only.
 
-Worldwide search lives in **Explore weather**. Enter a city, town, or postal code, then choose a match from the list of regions/countries. You can also enter coordinates, including locations outside named settlements. Distinct saved places in **Your API** should retain distinct town labels (such as `Paris, Île-de-France, France`).
+Worldwide search lives in **Explore weather**. Type three or more characters for location suggestions, then choose a match from the list of regions/countries. You can also enter coordinates, including locations outside named settlements. Distinct saved places in **Your API** should retain distinct town labels (such as `Paris, Île-de-France, France`).
 
 ## Explore weather and request controls
 
@@ -130,7 +130,7 @@ The free hosted service is for non-commercial use; commercial use requires an ap
 
 | Control | Behavior |
 | --- | --- |
-| Explicit requests | No startup weather fetch, background polling, typeahead requests, or automatic retries. Submit a search, select a place, or press Refresh. |
+| Explicit requests | No startup weather fetch, background polling, or automatic retries. Location suggestions load after three characters and a 450 ms pause. Submit searches of two or more characters immediately, select a place, or press Refresh. Suggestions share the existing allowance and geocoding cache. |
 | Persistent allowance | At most 10 fetch attempts/minute and 100/UTC day per browser origin. Searches and forecasts share the weather allowance; Your API has a separate allowance, shared across its base URLs. Failed network/provider attempts count. |
 | Cross-tab coordination | Web Locks serialize allowance reservations where supported. A localStorage counter survives reloads; unavailable or corrupt budget storage blocks new requests. These are browser controls, not tamper-resistant quotas. |
 | Cache | Forecast responses last 15 minutes; geocoding responses 24 hours. At most 30 cache entries. Cache hits and duplicate simultaneous GETs do not consume more requests. Refresh honors the cache. |

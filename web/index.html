@@ -217,7 +217,8 @@
                 Up to 10 requests per minute and 100 per UTC day in this
                 browser, shared across location searches and forecasts.
                 Forecasts are cached for 15 minutes; location matches for 24
-                hours. No background polling or automatic retries.
+                hours. Suggestions appear after three characters and a short
+                typing pause. No background polling or automatic retries.
               </p>
               <p>
                 Explore uses Open-Meteo’s free, non-commercial endpoints,
@@ -259,6 +260,7 @@
         </footer>
       </main>
     </div>
+    <script src="typeahead.js"></script>
     <script src="explore.js"></script>
   </body>
 </html>
