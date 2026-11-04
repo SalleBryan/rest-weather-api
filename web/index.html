@@ -12,6 +12,9 @@
 
     <link href="platform.css" rel="stylesheet" />
     <link href="explore.css" rel="stylesheet" />
+    <link href="library.css" rel="stylesheet" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icon.svg" />
     <link rel="stylesheet" href="fonts/fonts.css" />
     <script src="palettes.js"></script>
     <script src="request-policy.js"></script>
@@ -22,11 +25,15 @@
     <nav class="rail" aria-label="Main navigation">
       <a class="brand-mark" href="index.html" aria-label="Weather Board home"
         ><span class="sym fill">sunny</span></a
-      ><a href="index.html" aria-current="page"
+      ><a href="#weather" data-destination="weather" aria-current="page"
         ><span class="sym">partly_cloudy_day</span><span>Weather</span></a
+      ><a href="#places" data-destination="places"
+        ><span class="sym">location_on</span><span>Places</span></a
+      ><a href="#compare" data-destination="compare"
+        ><span class="sym">view_list</span><span>Compare</span></a
       ><a href="workspace.html"
         ><span class="sym">api</span><span>Your API</span></a
-      ><button id="usageShortcut" type="button">
+      ><button id="usageShortcut" type="button" hidden>
         <span class="sym">speed</span><span>Usage</span>
       </button>
     </nav>
@@ -43,152 +50,232 @@
         </div>
       </header>
       <main id="main" class="explore-main">
-        <div class="page-intro">
-          <div>
-            <p class="eyebrow">A little perspective, wherever you are</p>
-            <h1>Find your forecast.</h1>
-          </div>
-          <div class="connected" role="group" aria-label="Temperature units">
-            <button type="button" data-unit="metric" aria-pressed="true">
-              °C</button
-            ><button type="button" data-unit="imperial" aria-pressed="false">
-              °F
-            </button>
-          </div>
-        </div>
-        <section class="search-region" aria-label="Worldwide location search">
-          <form id="worldForm" class="world-search" role="search">
-            <span class="sym">search</span
-            ><input
-              id="placeInput"
-              type="search"
-              required
-              minlength="2"
-              maxlength="100"
-              autocomplete="off"
-              placeholder="Search a city, town, or postal code"
-              aria-label="Search worldwide locations"
-            /><button
-              type="submit"
-              class="search-submit"
-              aria-label="Search locations"
-            >
-              <span class="sym">arrow_forward</span>
-            </button>
-          </form>
-          <div id="searchResults" class="search-results" hidden>
-            <div class="results-heading">
-              <p id="searchStatus" role="status"></p>
-              <button
-                id="closeResults"
-                type="button"
-                class="icon-btn"
-                aria-label="Close search results"
-              >
-                <span class="sym">close</span>
+        <p id="offlineNote" class="offline-note" role="status" hidden>
+          Offline. Showing saved weather; search and refresh need a connection.
+        </p>
+        <p id="storageNote" class="local-note" role="status"></p>
+        <div id="weatherView">
+          <div class="page-intro">
+            <div>
+              <p class="eyebrow">A little perspective, wherever you are</p>
+              <h1>Find your forecast.</h1>
+            </div>
+            <div class="connected" role="group" aria-label="Temperature units">
+              <button type="button" data-unit="metric" aria-pressed="true">
+                °C</button
+              ><button type="button" data-unit="imperial" aria-pressed="false">
+                °F
               </button>
             </div>
-            <div id="placeResults" class="place-results"></div>
-            <p class="small muted">
-              Locations by
-              <a
-                href="https://open-meteo.com/en/docs/geocoding-api"
-                target="_blank"
-                rel="noopener"
-                >Open-Meteo / GeoNames</a
-              >
-            </p>
           </div>
-          <details class="coordinate-search">
-            <summary>Have coordinates instead?</summary>
-            <form id="coordinateForm">
-              <label
-                >Latitude<input
-                  id="latitude"
-                  type="number"
-                  min="-90"
-                  max="90"
-                  step="any"
-                  required
-                  placeholder="4.05" /></label
-              ><label
-                >Longitude<input
-                  id="longitude"
-                  type="number"
-                  min="-180"
-                  max="180"
-                  step="any"
-                  required
-                  placeholder="9.7" /></label
-              ><button class="action tonal" type="submit">
-                Get forecast<span class="sym">arrow_forward</span>
+          <section class="search-region" aria-label="Worldwide location search">
+            <form id="worldForm" class="world-search" role="search">
+              <span class="sym">search</span
+              ><input
+                id="placeInput"
+                type="search"
+                required
+                minlength="2"
+                maxlength="100"
+                autocomplete="off"
+                placeholder="Search a city, town, or postal code"
+                aria-label="Search worldwide locations"
+              /><button
+                type="submit"
+                class="search-submit"
+                aria-label="Search locations"
+              >
+                <span class="sym">arrow_forward</span>
               </button>
             </form>
-          </details>
-        </section>
-        <p id="weatherStatus" class="weather-status" role="status"></p>
-        <section id="welcome" class="welcome" aria-labelledby="welcomeTitle">
-          <div>
-            <p class="eyebrow">One planet. So many skies.</p>
-            <h2 id="welcomeTitle">A change<br />of atmosphere.</h2>
-            <p>
-              From your corner of the world to somewhere new. Pick a place for
-              current conditions and the week ahead.
-            </p>
-            <div class="starter-places" aria-label="Places to explore">
-              <button data-city="douala">
-                Douala <span class="sym">north_east</span></button
-              ><button data-city="tokyo">
-                Tokyo <span class="sym">north_east</span></button
-              ><button data-city="oslo">
-                Oslo <span class="sym">north_east</span>
+            <div id="searchResults" class="search-results" hidden>
+              <div class="results-heading">
+                <p id="searchStatus" role="status"></p>
+                <button
+                  id="closeResults"
+                  type="button"
+                  class="icon-btn"
+                  aria-label="Close search results"
+                >
+                  <span class="sym">close</span>
+                </button>
+              </div>
+              <div id="placeResults" class="place-results"></div>
+              <p class="small muted">
+                Locations by
+                <a
+                  href="https://open-meteo.com/en/docs/geocoding-api"
+                  target="_blank"
+                  rel="noopener"
+                  >Open-Meteo / GeoNames</a
+                >
+              </p>
+            </div>
+            <details class="coordinate-search">
+              <summary>Have coordinates instead?</summary>
+              <form id="coordinateForm">
+                <label
+                  >Latitude<input
+                    id="latitude"
+                    type="number"
+                    min="-90"
+                    max="90"
+                    step="any"
+                    required
+                    placeholder="4.05" /></label
+                ><label
+                  >Longitude<input
+                    id="longitude"
+                    type="number"
+                    min="-180"
+                    max="180"
+                    step="any"
+                    required
+                    placeholder="9.7" /></label
+                ><button class="action tonal" type="submit">
+                  Get forecast<span class="sym">arrow_forward</span>
+                </button>
+              </form>
+            </details>
+          </section>
+          <p id="weatherStatus" class="weather-status" role="status"></p>
+          <section id="welcome" class="welcome" aria-labelledby="welcomeTitle">
+            <div>
+              <p class="eyebrow">One planet. So many skies.</p>
+              <h2 id="welcomeTitle">A change<br />of atmosphere.</h2>
+              <p>
+                From your corner of the world to somewhere new. Pick a place for
+                current conditions and the week ahead.
+              </p>
+              <div class="starter-places" aria-label="Places to explore">
+                <button data-city="douala">
+                  Douala <span class="sym">north_east</span></button
+                ><button data-city="tokyo">
+                  Tokyo <span class="sym">north_east</span></button
+                ><button data-city="oslo">
+                  Oslo <span class="sym">north_east</span>
+                </button>
+              </div>
+            </div>
+            <div class="welcome-art" aria-hidden="true">
+              <div class="sun-disc"></div>
+              <div class="cloud-disc"><span class="sym fill">cloud</span></div>
+              <span class="orbit-dot"></span>
+            </div>
+          </section>
+          <div id="weatherContent" hidden>
+            <section
+              id="currentWeather"
+              class="current-weather"
+              aria-labelledby="placeName"
+            ></section>
+            <div class="forecast-actions">
+              <button id="favoritePlace" type="button">Save favorite</button
+              ><button id="comparePlace" type="button">Add to comparison</button
+              ><button id="importForecast" type="button">
+                Save to your journal
               </button>
             </div>
-          </div>
-          <div class="welcome-art" aria-hidden="true">
-            <div class="sun-disc"></div>
-            <div class="cloud-disc"><span class="sym fill">cloud</span></div>
-            <span class="orbit-dot"></span>
-          </div>
-        </section>
-        <div id="weatherContent" hidden>
-          <section
-            id="currentWeather"
-            class="current-weather"
-            aria-labelledby="placeName"
-          ></section>
-          <div class="forecast-layout">
-            <section class="hourly-panel" aria-labelledby="hourlyTitle">
-              <div class="panel-heading">
-                <div>
-                  <p class="eyebrow">Make a little plan</p>
-                  <h2 id="hourlyTitle">The next 24 hours</h2>
+            <p id="freshness" class="freshness"></p>
+            <div class="forecast-layout">
+              <section class="hourly-panel" aria-labelledby="hourlyTitle">
+                <div class="panel-heading">
+                  <div>
+                    <p class="eyebrow">Make a little plan</p>
+                    <h2 id="hourlyTitle">The next 24 hours</h2>
+                  </div>
+                  <span class="sym">schedule</span>
                 </div>
-                <span class="sym">schedule</span>
-              </div>
-              <div id="hourlyChart"></div>
-              <div
-                id="hourlyList"
-                class="hourly-list"
-                tabindex="0"
-                role="region"
-                aria-label="Hourly forecast, scroll for more"
-              ></div>
-              <p class="small muted">
-                Rain percentages show precipitation probability.
-              </p>
-            </section>
-            <section class="daily-panel" aria-labelledby="dailyTitle">
-              <div class="panel-heading">
-                <div>
-                  <p class="eyebrow">A look ahead</p>
-                  <h2 id="dailyTitle">Your week, at a glance</h2>
+                <div id="hourlyChart"></div>
+                <div
+                  id="hourlyList"
+                  class="hourly-list"
+                  tabindex="0"
+                  role="region"
+                  aria-label="Hourly forecast, scroll for more"
+                ></div>
+                <p class="small muted">
+                  Rain percentages show precipitation probability.
+                </p>
+              </section>
+              <section class="daily-panel" aria-labelledby="dailyTitle">
+                <div class="panel-heading">
+                  <div>
+                    <p class="eyebrow">A look ahead</p>
+                    <h2 id="dailyTitle">Your week, at a glance</h2>
+                  </div>
                 </div>
-              </div>
-              <div id="dailyList" class="daily-list"></div>
-            </section>
+                <div id="dailyList" class="daily-list"></div>
+              </section>
+            </div>
           </div>
         </div>
+        <section id="placesView" class="library-main" hidden>
+          <div class="page-intro">
+            <div>
+              <p class="eyebrow">A few familiar skies</p>
+              <h1>Your places.</h1>
+            </div>
+          </div>
+          <p class="library-intro">
+            Keep the places that matter close. Favorites and recent forecasts
+            stay in this browser. Opening a saved forecast uses its snapshot;
+            refresh when you want new data.
+          </p>
+          <div class="section-heading">
+            <h2>Favorites</h2>
+            <span class="quiet-label">Up to 12 places</span>
+          </div>
+          <div id="favoriteGrid" class="place-grid"></div>
+          <div class="section-heading">
+            <h2>Recently explored</h2>
+            <a class="library-action" href="#weather">Find a place</a>
+          </div>
+          <div id="recentGrid" class="place-grid"></div>
+          <details class="local-note">
+            <summary>Manage local data</summary>
+            <p>
+              Up to eight forecast snapshots are saved on this device. No
+              account synchronization. Removing a row changes that list only.
+              Clear local weather data to remove all place lists, snapshots,
+              comparison choices, and provider caches. Request counters are
+              kept.
+            </p>
+            <button id="clearPlaces" class="library-action" type="button">
+              Clear local weather data
+            </button>
+          </details>
+        </section>
+        <section id="compareView" class="library-main" hidden>
+          <div class="page-intro">
+            <div>
+              <p class="eyebrow">Different places. A shared perspective.</p>
+              <h1>Side by side.</h1>
+            </div>
+            <div
+              class="connected"
+              role="group"
+              aria-label="Comparison temperature units"
+            >
+              <button type="button" data-unit="metric">°C</button
+              ><button type="button" data-unit="imperial">°F</button>
+            </div>
+          </div>
+          <p class="library-intro">
+            Compare up to three places using their saved forecasts. Add a place
+            from Weather or Places. Refresh checks the cache first, then makes
+            at most one forecast request per place.
+          </p>
+          <div class="library-actions">
+            <a href="#weather" class="library-action">Find a place</a
+            ><button id="refreshCompare" type="button">
+              Refresh comparison
+            </button>
+          </div>
+          <p id="compareStatus" role="status"></p>
+          <div id="compareGrid" class="compare-grid"></div>
+          <div id="compareChart" class="compare-chart" hidden></div>
+        </section>
         <section id="usage" class="usage-section" aria-labelledby="usageTitle">
           <details id="usageDetails">
             <summary>
@@ -260,7 +347,64 @@
         </footer>
       </main>
     </div>
+    <dialog id="dayDialog" class="detail-dialog" aria-labelledby="dayTitle">
+      <div class="dialog-heading">
+        <p class="eyebrow">A closer look</p>
+        <div>
+          <button
+            id="expandDetail"
+            class="icon-btn"
+            type="button"
+            aria-label="Expand day details"
+            aria-expanded="false"
+          >
+            <span class="sym">expand_more</span></button
+          ><button
+            id="closeDay"
+            type="button"
+            class="icon-btn"
+            aria-label="Close day details"
+          >
+            <span class="sym">close</span>
+          </button>
+        </div>
+      </div>
+      <h2 id="dayTitle"></h2>
+      <p id="daySummary"></p>
+      <div id="dayChart"></div>
+      <div class="detail-table-wrap">
+        <table class="detail-table">
+          <caption id="dayCaption" class="local-note"></caption>
+          <thead>
+            <tr>
+              <th scope="col">Local hour</th>
+              <th scope="col">Temperature</th>
+              <th scope="col">Rain chance</th>
+            </tr>
+          </thead>
+          <tbody id="dayRows"></tbody>
+        </table>
+      </div>
+      <p class="local-note">
+        Model forecast by Open-Meteo. Opening a day uses the data already
+        downloaded.
+      </p>
+    </dialog>
+    <dialog id="clearDialog" class="detail-dialog" aria-labelledby="clearTitle">
+      <h2 id="clearTitle">Clear saved weather?</h2>
+      <p>
+        Your favorites, recent places, comparison list, snapshots, and provider
+        caches will be removed from this browser.
+      </p>
+      <div class="library-actions">
+        <button id="cancelClear" type="button">Keep my places</button
+        ><button id="confirmClear" type="button">Clear local weather</button>
+      </div>
+    </dialog>
+    <script src="place-store.js"></script>
     <script src="typeahead.js"></script>
     <script src="explore.js"></script>
+    <script src="library.js"></script>
+    <script src="register-sw.js"></script>
   </body>
 </html>

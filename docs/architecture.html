@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=1600">
 <title>Weather Board · Serverless architecture</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght,ROND@6..144,100..1000,0..100&family=Google+Sans+Code:wght@400..700&display=block');
+@import url('../web/fonts/fonts.css');
 :root{--surface:#faf8ff;--card:#ededf8;--low:#f2f3fd;--ink:#191b23;--muted:#424654;--primary:#0052c4;--blue:#2b6be4;--secondary:#b5c8fe;--secondary-ink:#405382;--warm:#bc5100;--line:#a4b5d8;--mono:'Google Sans Code',Consolas,monospace}
 *{box-sizing:border-box}body{margin:0;background:var(--surface);color:var(--ink);font-family:'Google Sans Flex',sans-serif;font-variation-settings:'ROND' 0}
 .canvas{position:relative;width:1600px;height:1080px;overflow:hidden;padding:52px 64px}
@@ -61,8 +61,8 @@ svg.icon{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;strok
 <path d="M1188 387H1226V763H1188M1188 481H1226M1188 575H1226M1188 669H1226"/>
 <path class="active" d="M1226 576H1270" marker-end="url(#arrow)"/>
 </svg>
-<section class="node client"><div class="badge"><svg class="icon"><use href="#devices"/></svg></div><h2>Client</h2><p>Weather Board<br>or Postman</p><span class="tag">HTTP request</span></section>
-<section class="node gateway"><div class="badge"><svg class="icon"><use href="#door"/></svg></div><h2>API Gateway</h2><code>WeatherApi · dev</code><p style="margin-top:14px">Method + path<br>select the function</p><span class="tag">5 req/s · burst 5</span></section>
+<section class="node client"><div class="badge"><svg class="icon"><use href="#devices"/></svg></div><h2>Client</h2><p>Weather Board<br>or Postman</p><span class="tag">Bearer token</span></section>
+<section class="node gateway"><div class="badge"><svg class="icon"><use href="#door"/></svg></div><h2>API Gateway</h2><code>WeatherApi · dev</code><p style="margin-top:14px">Owner authorizer<br>then method + path</p><span class="tag">1 req/s · burst 3</span></section>
 <section class="functions" aria-label="Five Lambda functions with their routes and SAM Connector permissions">
 <article class="fn"><div class="lambda">λ</div><div class="fn-info"><h3>CreateWeather</h3><div class="route"><span class="method post">POST</span>/create-weather</div></div><span class="access write">Write</span></article>
 <article class="fn"><div class="lambda">λ</div><div class="fn-info"><h3>GetWeather</h3><div class="route"><span class="method">GET</span>/weather/{id}</div></div><span class="access">Read</span></article>

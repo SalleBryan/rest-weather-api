@@ -14,6 +14,9 @@
     <link rel="stylesheet" href="workspace-base.css" />
     <link rel="stylesheet" href="explore.css" />
     <link rel="stylesheet" href="workspace.css" />
+    <link rel="stylesheet" href="library.css" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icon.svg" />
   </head>
   <body>
     <a class="skip" href="#main">Skip to workspace</a>
@@ -22,9 +25,13 @@
         ><span class="sym fill">sunny</span></a
       ><a href="index.html"
         ><span class="sym">partly_cloudy_day</span><span>Weather</span></a
+      ><a href="index.html#places"
+        ><span class="sym">location_on</span><span>Places</span></a
+      ><a href="index.html#compare"
+        ><span class="sym">view_list</span><span>Compare</span></a
       ><a href="workspace.html" aria-current="page"
         ><span class="sym">api</span><span>Your API</span></a
-      ><button id="connectionShortcut" type="button">
+      ><button id="connectionShortcut" type="button" hidden>
         <span class="sym">settings</span><span>Connection</span>
       </button>
     </nav>
@@ -72,6 +79,31 @@
       </div>
       <main id="main" class="workspace-main">
         <section
+          id="importPane"
+          class="library-card"
+          hidden
+          aria-labelledby="importTitle"
+        >
+          <p class="eyebrow">Forecast to journal</p>
+          <h2 id="importTitle">Review before saving.</h2>
+          <p id="importSummary"></p>
+          <p class="local-note">
+            This is a weather model estimate, not an observed station
+            measurement. The original model timestamp is retained in observedAt.
+            Connect your API, check this payload, then choose Save once.
+          </p>
+          <details>
+            <summary>Payload preview</summary>
+            <pre id="importPayload"></pre>
+          </details>
+          <div class="library-actions">
+            <button id="saveImport" type="button" disabled>
+              Save forecast to journal</button
+            ><button id="cancelImport" type="button">Discard draft</button>
+          </div>
+          <p id="importStatus" role="status"></p>
+        </section>
+        <section
           id="connectionPane"
           data-pane="connection"
           class="connection-panel"
@@ -101,6 +133,20 @@
                     autocomplete="off"
                     aria-describedby="connectionHelp" /></span
               ></label>
+              <label class="history-control" for="apiToken"
+                ><span>Owner token (if required)</span
+                ><input
+                  id="apiToken"
+                  type="password"
+                  autocomplete="off"
+                  spellcheck="false"
+                  placeholder="Paste your private bearer token"
+              /></label>
+              <p class="small muted">
+                The token stays in this tab memory and is sent only to the API
+                URL you connect. It is cleared on disconnect and never saved
+                with forecasts.
+              </p>
               <p id="connectionHelp" class="small muted">
                 Use your WeatherApiUrl from SAM, or a local Weather Board API.
                 No credentials in the URL. HTTPS is required except for
@@ -526,5 +572,6 @@
     <script src="request-policy.js"></script>
     <script src="typeahead.js"></script>
     <script src="workspace.js"></script>
+    <script src="register-sw.js"></script>
   </body>
 </html>

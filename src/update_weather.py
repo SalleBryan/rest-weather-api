@@ -15,7 +15,6 @@ table = dynamodb.Table(table_name)
 
 
 def lambda_handler(event, context):
-    print(f"event {event}")
     weather_id = get_path_id(event)
     if not weather_id:
         return respond(400, {"message": "Weather id is required in the path: /weather/{id}"})
@@ -24,7 +23,6 @@ def lambda_handler(event, context):
     if error:
         return respond(400, {"message": error})
 
-    print(f"weather_id {weather_id} -> {data}")
 
     try:
         existing = table.get_item(Key={'id':weather_id},ConsistentRead=True).get('Item')

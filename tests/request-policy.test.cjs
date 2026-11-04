@@ -2,6 +2,62 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const { create, apiBase } = require("../web/request-policy.js");
 const OpenMeteo = require("../web/open-meteo.js");
+test("clearing local weather during a read prevents late cache repopulation", async () => {
+  const state = storage();
+  let release;
+  const guard = create({
+    storage: state,
+    fetcher: () => new Promise((resolve) => (release = resolve)),
+  });
+  const read = guard.request("https://provider.test", { ttl: 1000 });
+  await new Promise((resolve) => setImmediate(resolve));
+  state.setItem("wb-cache-generation", JSON.stringify("cleared"));
+  release(response());
+  await read;
+  assert.equal(state.getItem("wb-cache-v1"), undefined);
+});
+test("owner headers are sent only for uncached BYO requests and never persisted or coalesced across credentials", async () => {
+  const state = storage();
+  let calls = [];
+  const guard = create({
+    storage: state,
+    fetcher: async (url, options) => {
+      calls.push(options);
+      return response();
+    },
+  });
+  await assert.rejects(
+    guard.request("https://journal.test", {
+      headers: { Authorization: "Bearer private" },
+    }),
+    /Authenticated/,
+  );
+  await assert.rejects(
+    guard.request("https://journal.test", {
+      group: "byo",
+      ttl: 1000,
+      headers: { Authorization: "Bearer private" },
+    }),
+    /Authenticated/,
+  );
+  await Promise.all(
+    ["first-secret", "second-secret"].map((token) =>
+      guard.request("https://journal.test", {
+        group: "byo",
+        headers: { Authorization: token },
+      }),
+    ),
+  );
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0].cache, "no-store");
+  assert.equal(calls[0].credentials, "omit");
+  assert.deepEqual(
+    calls.map((c) => c.headers.Authorization),
+    ["first-secret", "second-secret"],
+  );
+  assert.equal(state.getItem("wb-cache-v1"), undefined);
+  assert(!state.getItem("wb-budget-v1-byo").includes("secret"));
+});
 const storage = () => {
   const data = new Map();
   return {

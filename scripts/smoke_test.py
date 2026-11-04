@@ -7,6 +7,7 @@ Runs the full CRUDL cycle against the real API and prints one line per request:
 Uses only the standard library, so it also runs with plain `python`.
 """
 import json
+import os
 import sys
 import time
 import urllib.error
@@ -18,7 +19,7 @@ GREEN, RED, DIM, RESET = '\033[32m', '\033[31m', '\033[2m', '\033[0m'
 def call(base_url, method, path, body=None):
     data = json.dumps(body).encode() if body is not None else None
     request = urllib.request.Request(base_url + path, data=data, method=method,
-                                     headers={'Content-Type': 'application/json'})
+                                     headers={'Content-Type': 'application/json', **({'Authorization': 'Bearer ' + os.environ['WEATHER_API_TOKEN']} if os.environ.get('WEATHER_API_TOKEN') else {})})
     started = time.perf_counter()
     try:
         with urllib.request.urlopen(request, timeout=15) as response:
@@ -38,6 +39,7 @@ def main():
 
     def check(label, method, path, expected, body=None):
         nonlocal failures
+        time.sleep(1.1)  # respect the one-request/second deployed stage throttle
         status, payload, ms = call(base_url, method, path, body)
         ok = status == expected
         failures += not ok

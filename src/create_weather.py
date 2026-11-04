@@ -15,8 +15,6 @@ table = dynamodb.Table(table_name)
 
 
 def lambda_handler(event, context):
-    print(f"event is {event}")
-    print(f"table name is {table_name}")
 
     data, error = parse_weather_body(event)
     if error:

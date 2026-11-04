@@ -62,7 +62,14 @@
       !Number.isFinite(data.current.time) ||
       !Array.isArray(data.hourly?.time) ||
       !Array.isArray(data.daily?.time) ||
-      !data.timezone
+      typeof data.timezone !== "string" ||
+      !data.hourly.time.length ||
+      data.hourly.time.length > 200 ||
+      !data.daily.time.length ||
+      data.daily.time.length > 8 ||
+      ![data.current.time, ...data.hourly.time, ...data.daily.time].every(
+        (time) => Number.isFinite(time) && Math.abs(time) < 8640000000000,
+      )
     )
       throw Error("Weather data is incomplete. Try another location.");
     try {

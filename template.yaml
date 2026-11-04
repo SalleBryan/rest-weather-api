@@ -6,6 +6,13 @@ Description: >
   A CRUDL serverless REST API built with AWS SAM, API Gateway, Lambda (Python) and DynamoDB.
   Based on the Educloud Academy course "Building a Serverless Rest Api With AWS SAM and Python".
 
+Parameters:
+  OwnerTokenSha256:
+    Type: String
+    NoEcho: true
+    AllowedPattern: "[a-f0-9]{64}"
+    Description: SHA256 digest of a private random owner token; never the token itself.
+
 # Globals: settings every function and API in this template shares.
 Globals:
   Function:
@@ -22,7 +29,7 @@ Globals:
     Cors:                     # lets the web dashboard (web/index.html) call the API from a browser
       AllowOrigin: "'*'"
       AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
-      AllowHeaders: "'Content-Type'"
+      AllowHeaders: "'Content-Type,Authorization'"
 
 Resources:
   # ── The front door ──────────────────────────────────────────────────────────
@@ -31,14 +38,49 @@ Resources:
     Properties:
       StageName: dev
       Description: serverless api for weather application
-      # The API is public, so cap traffic for every route on this stage.
+      Auth:
+        DefaultAuthorizer: OwnerAuthorizer
+        AddDefaultAuthorizerToCorsPreflight: false
+        Authorizers:
+          OwnerAuthorizer:
+            FunctionArn: !GetAtt OwnerAuthorizer.Arn
+            FunctionPayloadType: TOKEN
+            Identity:
+              Header: Authorization
+              ValidationExpression: '^Bearer [A-Za-z0-9_-]{43,128}$'
+              ReauthorizeEvery: 300
+      GatewayResponses:
+        DEFAULT_4XX:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: "'*'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+        DEFAULT_5XX:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: "'*'"
+      # Protect all routes and constrain authenticated traffic as well.
       # Throttles are best-effort traffic controls, not a quota or spending cap.
       # Concurrent executions are shared with other functions in the account/region.
       MethodSettings:
         - ResourcePath: "/*"
           HttpMethod: "*"
-          ThrottlingRateLimit: 5     # steady requests per second
-          ThrottlingBurstLimit: 5    # short spikes allowed above the steady rate
+          ThrottlingRateLimit: 1     # steady requests per second
+          ThrottlingBurstLimit: 3    # short spikes allowed above the steady rate
+
+  OwnerAuthorizer:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: authorize.lambda_handler
+      Environment:
+        Variables:
+          OWNER_TOKEN_SHA256: !Ref OwnerTokenSha256
+
+  OwnerAuthorizerLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${OwnerAuthorizer}'
+      RetentionInDays: 7
 
   # ── The database ────────────────────────────────────────────────────────────
   WeatherTable:

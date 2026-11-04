@@ -1,0 +1,278 @@
+name	url	category
+AccuWeather	https://www.accuweather.com/	consumer
+The Weather Channel	https://weather.com/	consumer
+Weather Underground	https://www.wunderground.com/	consumer
+WeatherBug	https://www.weatherbug.com/	consumer
+Foreca	https://www.foreca.com/	consumer
+Yr	https://www.yr.no/en	consumer
+Meteoblue	https://www.meteoblue.com/	consumer
+Windy	https://www.windy.com/	consumer
+Ventusky	https://www.ventusky.com/	consumer
+Weather and Radar	https://www.weatherandradar.com/	consumer
+BBC Weather	https://www.bbc.com/weather	consumer
+MSN Weather	https://www.msn.com/en-us/weather	consumer
+Apple Weather	https://support.apple.com/guide/iphone/check-the-weather-iph1ac0b35f/ios	consumer
+Google Weather	https://support.google.com/pixelphone/answer/15266029	consumer
+CARROT Weather	https://www.meetcarrot.com/weather/	consumer
+Hello Weather	https://helloweather.com/	consumer
+Mercury Weather	https://mercuryweather.app/	consumer
+Weathergraph	https://weathergraph.app/	consumer
+Weawow	https://weawow.com/	consumer
+Today Weather	https://todayweather.co/	consumer
+Overdrop	https://overdrop.app/	consumer
+Geometric Weather	https://github.com/WangDaYeeeeee/GeometricWeather	consumer
+Breezy Weather	https://github.com/breezy-weather/breezy-weather	consumer
+Bura	https://github.com/bmaroti9/Bura	consumer
+WeatherMaster	https://github.com/PranshulGG/WeatherMaster	consumer
+Rainy	https://github.com/MichaelWarncke/Rainy	consumer
+Clima	https://github.com/Lacerte/clima	consumer
+OmWeather	https://github.com/woheller69/omweather	consumer
+Cirrus	https://github.com/woheller69/cirrus	consumer
+Prognoza	https://github.com/davidtakac/prognoza	consumer
+Pluvia Weather	https://github.com/spicychair/pluvia_weather_flutter	consumer
+WeatherWise	https://weatherwise.app/	consumer
+WeatherPro	https://www.weatherpro.com/	consumer
+RainViewer	https://www.rainviewer.com/	consumer
+MyRadar	https://myradar.com/	consumer
+RadarScope	https://www.radarscope.app/	consumer
+RadarOmega	https://www.radaromega.com/	consumer
+Clime	https://climeradar.com/	consumer
+Rainbow Weather	https://rainbow.ai/	consumer
+Tomorrow.io	https://www.tomorrow.io/weather/	consumer
+Weather Live	https://weatherliveapp.com/	consumer
+Weatherzone	https://www.weatherzone.com.au/	consumer
+WillyWeather	https://www.willyweather.com/	consumer
+Weather.com.au	https://www.weather.com.au/	consumer
+Weather Underground Wundermap	https://www.wunderground.com/wundermap	consumer
+The Weather Network	https://www.theweathernetwork.com/	consumer
+MeteoMedia	https://www.meteomedia.com/	consumer
+WeatherOnline	https://www.weatheronline.co.uk/	consumer
+Weather-forecast.com	https://www.weather-forecast.com/	consumer
+Time and Date Weather	https://www.timeanddate.com/weather/	consumer
+World Weather Online	https://www.worldweatheronline.com/	consumer
+Weather Atlas	https://www.weather-atlas.com/	consumer
+Weather Spark	https://weatherspark.com/	consumer
+Meteoprog	https://www.meteoprog.com/	consumer
+Meteored	https://www.theweather.com/	consumer
+Meteovista	https://www.meteovista.com/	consumer
+Weeronline	https://www.weeronline.nl/	consumer
+Weerplaza	https://www.weerplaza.nl/	consumer
+Buienradar	https://www.buienradar.nl/	consumer
+Buienalarm	https://www.buienalarm.nl/	consumer
+Weer and Radar	https://www.weerenradar.nl/	consumer
+Kachelmannwetter	https://kachelmannwetter.com/	consumer
+Wetter.com	https://www.wetter.com/	consumer
+WetterOnline	https://www.wetteronline.de/	consumer
+Wetter.de	https://www.wetter.de/	consumer
+Wetter24	https://www.wetter24.de/	consumer
+Bergfex Weather	https://www.bergfex.com/wetter/	consumer
+La Chaine Meteo	https://www.lachainemeteo.com/	consumer
+Meteociel	https://www.meteociel.fr/	consumer
+Infoclimat	https://www.infoclimat.fr/	consumer
+Meteo60	https://www.meteo60.fr/	consumer
+Meteo Consult	https://www.meteoconsult.fr/	consumer
+Il Meteo	https://www.ilmeteo.it/	consumer
+3B Meteo	https://www.3bmeteo.com/	consumer
+Meteo.it	https://www.meteo.it/	consumer
+MeteoAM	https://www.meteoam.it/	consumer
+Eltiempo.es	https://www.eltiempo.es/	consumer
+Tiempo.com	https://www.tiempo.com/	consumer
+Meteored Mexico	https://www.meteored.mx/	consumer
+Climatempo	https://www.climatempo.com.br/	consumer
+Tempo.com	https://www.tempo.com/	consumer
+Tempo Agora	https://www.tempoagora.com.br/	consumer
+Windguru	https://www.windguru.cz/	outdoor
+Windfinder	https://www.windfinder.com/	outdoor
+PredictWind	https://www.predictwind.com/	outdoor
+Windy.app	https://windy.app/	outdoor
+SailGrib	https://www.sailgrib.com/	outdoor
+SailFlow	https://www.sailflow.com/	outdoor
+iWindsurf	https://www.iwindsurf.com/	outdoor
+iKitesurf	https://www.ikitesurf.com/	outdoor
+FishWeather	https://www.fishweather.com/	outdoor
+Saildocs	https://www.saildocs.com/	outdoor
+PassageWeather	https://www.passageweather.com/	outdoor
+ZyGrib	https://www.zygrib.org/	outdoor
+XyGrib	https://opengribs.org/	outdoor
+Sailing Weather Online	https://www.sailingweatheronline.com/	outdoor
+Buoyweather	https://www.buoyweather.com/	outdoor
+Surfline	https://www.surfline.com/	outdoor
+Surf-Forecast	https://www.surf-forecast.com/	outdoor
+Swellinfo	https://www.swellinfo.com/	outdoor
+WindAlert	https://www.windalert.com/	outdoor
+Seabreeze	https://www.seabreeze.com.au/	outdoor
+Tides4Fishing	https://tides4fishing.com/	outdoor
+Tide Forecast	https://www.tide-forecast.com/	outdoor
+Tideschart	https://www.tideschart.com/	outdoor
+SeaWeather	https://www.seaweather.net/	outdoor
+Mountain Forecast	https://www.mountain-forecast.com/	outdoor
+Snow Forecast	https://www.snow-forecast.com/	outdoor
+OpenSnow	https://opensnow.com/	outdoor
+OnTheSnow	https://www.onthesnow.com/	outdoor
+Snow-Forecast Snow Alerts	https://www.snow-forecast.com/pages/snow-alerts	outdoor
+Mountain Weather Information Service	https://www.mwis.org.uk/	outdoor
+MountainWeather	https://www.mountainweather.com/	outdoor
+SpotWx	https://spotwx.com/	outdoor
+Pivotal Weather	https://www.pivotalweather.com/	specialist
+Tropical Tidbits	https://www.tropicaltidbits.com/	specialist
+College of DuPage Weather	https://weather.cod.edu/	specialist
+WeatherBell	https://www.weatherbell.com/	specialist
+WeatherTAP	https://www.weathertap.com/	specialist
+Weathernerds	https://www.weathernerds.org/	specialist
+Zoom Earth	https://zoom.earth/	specialist
+ZoomRadar	https://www.zoomradar.com/	specialist
+Earth Nullschool	https://earth.nullschool.net/	specialist
+Blitzortung	https://www.blitzortung.org/	specialist
+LightningMaps	https://www.lightningmaps.org/	specialist
+Lightning Alarm	https://www.lightningalarm.com/	specialist
+Lightning Pro	https://www.lightningpro.com.au/	specialist
+Netweather	https://www.netweather.tv/	consumer
+Metcheck	https://www.metcheck.com/	consumer
+Weather Outlook	https://www.theweatheroutlook.com/	consumer
+Weather Underground Weather Station Network	https://www.wunderground.com/pws/overview	station
+Ambient Weather Network	https://ambientweather.net/	station
+WeatherFlow Tempest	https://tempest.earth/	station
+Ecowitt	https://www.ecowitt.net/	station
+Weathercloud	https://weathercloud.net/	station
+Windy Weather Stations	https://stations.windy.com/	station
+PWS Weather	https://www.pwsweather.com/	station
+WeatherSTEM	https://www.weatherstem.com/	station
+WeatherLink	https://www.weatherlink.com/	station
+Meteotemplate	https://www.meteotemplate.com/	station
+WeeWX	https://weewx.com/	station
+Cumulus MX	https://cumuluswiki.org/	station
+Meteobridge	https://www.meteobridge.com/	station
+Weather Display	https://www.weather-display.com/	station
+Home Assistant Weather	https://www.home-assistant.io/integrations/weather/	station
+Wetterzentrale	https://www.wetterzentrale.de/	specialist
+Keraunos	https://www.keraunos.org/	specialist
+Estofex	https://www.estofex.org/	specialist
+Storm Prediction Center	https://www.spc.noaa.gov/	official
+National Hurricane Center	https://www.nhc.noaa.gov/	official
+National Weather Service	https://www.weather.gov/	official
+US National Digital Forecast Database	https://digital.weather.gov/	official
+NOAA Weather Prediction Center	https://www.wpc.ncep.noaa.gov/	official
+UK Met Office	https://www.metoffice.gov.uk/	official
+UK Met Office WOW	https://wow.metoffice.gov.uk/	station
+Meteo-France	https://meteofrance.com/	official
+Deutscher Wetterdienst	https://www.dwd.de/EN/Home/home_node.html	official
+MeteoSwiss	https://www.meteoswiss.admin.ch/	official
+GeoSphere Austria	https://www.geosphere.at/en	official
+KNMI	https://www.knmi.nl/	official
+Royal Meteorological Institute Belgium	https://www.meteo.be/en/	official
+Danish Meteorological Institute	https://www.dmi.dk/	official
+Swedish Meteorological and Hydrological Institute	https://www.smhi.se/en	official
+Finnish Meteorological Institute	https://en.ilmatieteenlaitos.fi/	official
+Icelandic Met Office	https://en.vedur.is/	official
+Met Eireann	https://www.met.ie/	official
+AEMET	https://www.aemet.es/en/portada	official
+IPMA	https://www.ipma.pt/en/	official
+Polish IMGW	https://meteo.imgw.pl/	official
+Czech Hydrometeorological Institute	https://www.chmi.cz/	official
+Slovak Hydrometeorological Institute	https://www.shmu.sk/	official
+HungaroMet	https://www.met.hu/en/	official
+Slovenian ARSO	https://meteo.arso.gov.si/	official
+Croatian DHMZ	https://meteo.hr/	official
+Serbian Hydrometeorological Service	https://www.hidmet.gov.rs/eng/	official
+Romanian National Meteorological Administration	https://www.meteoromania.ro/	official
+Hellenic National Meteorological Service	https://emy.gr/	official
+Cyprus Department of Meteorology	https://www.moa.gov.cy/moa/dm/dm.nsf/home_en/home_en	official
+Malta Weather	https://www.maltairport.com/weather/	official
+Turkish Meteorological Service	https://www.mgm.gov.tr/eng/forecast-cities.aspx	official
+Estonian Weather Service	https://www.ilmateenistus.ee/?lang=en	official
+Latvian Environment Geology and Meteorology Centre	https://videscentrs.lvgmc.lv/	official
+Lithuanian Hydrometeorological Service	https://www.meteo.lt/en/	official
+Environment Canada	https://weather.gc.ca/	official
+Australian Bureau of Meteorology	https://www.bom.gov.au/	official
+MetService New Zealand	https://www.metservice.com/	official
+Japan Meteorological Agency	https://www.jma.go.jp/jma/en/menu.html	official
+Japan Weather Association tenki.jp	https://tenki.jp/	consumer
+Weathernews	https://weathernews.jp/	consumer
+Weathernews LiVE	https://global.weathernews.com/	specialist
+Korea Meteorological Administration	https://www.weather.go.kr/w/index.do	official
+Hong Kong Observatory	https://www.hko.gov.hk/en/index.html	official
+Taiwan Central Weather Administration	https://www.cwa.gov.tw/eng/	official
+Singapore Meteorological Service	https://www.weather.gov.sg/	official
+Malaysia MetMalaysia	https://www.met.gov.my/en/	official
+Thailand Meteorological Department	https://www.tmd.go.th/en/	official
+Philippines PAGASA	https://www.pagasa.dost.gov.ph/	official
+Indonesia BMKG	https://www.bmkg.go.id/	official
+Vietnam National Center for Hydrometeorological Forecasting	https://nchmf.gov.vn/	official
+India Meteorological Department	https://mausam.imd.gov.in/	official
+Bangladesh Meteorological Department	https://www.bmd.gov.bd/	official
+Pakistan Meteorological Department	https://www.pmd.gov.pk/	official
+Nepal Department of Hydrology and Meteorology	https://www.dhm.gov.np/	official
+Sri Lanka Department of Meteorology	https://www.meteo.gov.lk/	official
+Maldives Meteorological Service	https://www.meteorology.gov.mv/	official
+UAE National Center of Meteorology	https://www.ncm.ae/	official
+Qatar Meteorology Department	https://www.caa.gov.qa/en/meteorology	official
+Saudi National Center for Meteorology	https://ncm.gov.sa/	official
+Oman Meteorology	https://met.gov.om/	official
+Israel Meteorological Service	https://ims.gov.il/en	official
+South African Weather Service	https://www.weathersa.co.za/	official
+Kenya Meteorological Department	https://meteo.go.ke/	official
+Ghana Meteorological Agency	https://www.meteo.gov.gh/	official
+Nigeria NiMet	https://nimet.gov.ng/	official
+Morocco Meteo Maroc	https://www.marocmeteo.ma/	official
+Tunisia Institut National de la Meteorologie	https://www.meteo.tn/	official
+Mauritius Meteorological Services	https://metservice.intnet.mu/	official
+Seychelles Meteorological Authority	https://www.meteo.gov.sc/	official
+Meteo Madagascar	https://www.meteomadagascar.mg/	official
+Meteo Rwanda	https://www.meteorwanda.gov.rw/	official
+Tanzania Meteorological Authority	https://www.meteo.go.tz/	official
+Argentina Servicio Meteorologico Nacional	https://www.smn.gob.ar/	official
+Brazil INMET	https://portal.inmet.gov.br/	official
+Chile MeteoChile	https://www.meteochile.gob.cl/	official
+Colombia IDEAM	https://www.ideam.gov.co/	official
+Peru SENAMHI	https://www.senamhi.gob.pe/	official
+Ecuador INAMHI	https://www.inamhi.gob.ec/	official
+Mexico Servicio Meteorologico Nacional	https://smn.conagua.gob.mx/	official
+Costa Rica IMN	https://www.imn.ac.cr/	official
+Cuba INSMET	https://www.insmet.cu/	official
+Uruguay INUMET	https://www.inumet.gub.uy/	official
+Paraguay DMH	https://www.meteorologia.gov.py/	official
+Fiji Meteorological Service	https://www.met.gov.fj/	official
+Papua New Guinea National Weather Service	https://www.pngmet.gov.pg/	official
+Samoa Meteorology	https://www.samet.gov.ws/	official
+Tonga Meteorological Service	https://www.met.gov.to/	official
+Vanuatu Meteorology	https://www.vmgd.gov.vu/	official
+Solomon Islands Meteorological Service	https://www.met.gov.sb/	official
+IQAir AirVisual	https://www.iqair.com/	air-quality
+World Air Quality Index	https://waqi.info/	air-quality
+AirNow	https://www.airnow.gov/	air-quality
+Airly	https://airly.org/en/	air-quality
+Plume Labs	https://plumelabs.com/en/	air-quality
+BreezoMeter	https://www.breezometer.com/	air-quality
+AirMatters	https://air-matters.com/	air-quality
+AirCare	https://getaircare.com/	air-quality
+Sensor.Community	https://sensor.community/en/	air-quality
+PurpleAir	https://www2.purpleair.com/	air-quality
+WindBorne WeatherMesh	https://windbornesystems.com/	specialist
+ForeFlight	https://foreflight.com/	aviation
+Garmin Pilot	https://www.garmin.com/en-US/p/115856/	aviation
+SkyDemon	https://www.skydemon.aero/	aviation
+Avia Weather	https://www.mytowntonight.com/aviaweather/	aviation
+Windy Route Planner	https://community.windy.com/topic/10465/route-planner	outdoor
+XCWeather	https://www.xcweather.co.uk/	outdoor
+RASP UK	https://rasp.stratus.org.uk/	outdoor
+XC Skies	https://www.xcskies.com/	outdoor
+Meteo Parapente	https://meteo-parapente.com/	outdoor
+SkySight	https://skysight.io/	outdoor
+RASP Australia	https://www.ausrasp.com/	outdoor
+MeteoEarth	https://www.meteoearth.com/	consumer
+Open-Meteo	https://open-meteo.com/	developer
+OpenWeather	https://openweathermap.org/	developer
+WeatherAPI	https://www.weatherapi.com/	developer
+Visual Crossing	https://www.visualcrossing.com/	developer
+Pirate Weather	https://pirateweather.net/	developer
+Weatherbit	https://www.weatherbit.io/	developer
+WeatherKit	https://developer.apple.com/weatherkit/	developer
+Meteomatics	https://www.meteomatics.com/en/	developer
+Meteomatics EURO1k	https://www.meteomatics.com/en/weather-models/	specialist
+Meteosource	https://www.meteosource.com/	developer
+Stormglass	https://stormglass.io/	developer
+Xweather	https://www.xweather.com/	developer
+DTN Weather	https://www.dtn.com/weather/	specialist
+StormGeo	https://stormgeo.com/	specialist
+Spire Weather	https://spire.com/weather-climate/	specialist
+Tomorrow.io Insights	https://www.tomorrow.io/industry/weather-intelligence/	specialist

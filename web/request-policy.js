@@ -72,10 +72,25 @@
         : Promise.resolve().then(fn);
     async function request(
       url,
-      { group = "weather", ttl = 0, method = "GET", body, signal } = {},
+      {
+        group = "weather",
+        ttl = 0,
+        method = "GET",
+        body,
+        signal,
+        headers = {},
+      } = {},
     ) {
+      if (Object.keys(headers).length && (ttl || group !== "byo"))
+        throw Error("Authenticated responses cannot use the public cache.");
       const cacheKey = "wb-cache-v1",
         key = method + " " + url;
+      let generation;
+      try {
+        generation = read("wb-cache-generation");
+      } catch {
+        generation = null;
+      }
       if (ttl && method !== "GET") throw Error("Only reads may be cached.");
       // Cache reads never consume the request allowance.
       if (ttl) {
@@ -88,7 +103,8 @@
           /* Ignore damaged/disabled cache, but never ignore a damaged budget. */
         }
       }
-      if (method === "GET" && pending.has(key)) return pending.get(key);
+      if (method === "GET" && !Object.keys(headers).length && pending.has(key))
+        return pending.get(key);
       const work = (async () => {
         await locked(group, () => reserve(group));
         const controller = new AbortController(),
@@ -103,7 +119,11 @@
             signal: controller.signal,
             credentials: "omit",
             redirect: "error",
-            headers: body ? { "Content-Type": "application/json" } : {},
+            headers: {
+              ...headers,
+              ...(body ? { "Content-Type": "application/json" } : {}),
+            },
+            cache: group === "byo" ? "no-store" : "default",
           });
           const data = await response.json().catch(() => null);
           if (response.status === 429) {
@@ -145,6 +165,7 @@
           };
           if (ttl) {
             try {
+              if (read("wb-cache-generation") !== generation) return value;
               const entries = (read(cacheKey) || [])
                 .filter((it) => it.key !== key && it.expires > now())
                 .slice(-29);
@@ -160,7 +181,8 @@
           signal?.removeEventListener("abort", abort);
         }
       })();
-      if (method === "GET") pending.set(key, work);
+      if (method === "GET" && !Object.keys(headers).length)
+        pending.set(key, work);
       try {
         return await work;
       } finally {

@@ -290,6 +290,9 @@ const ROUTES = {
   "DELETE /weather/{id}": ["DeleteWeatherLambda", "Write · delete_item"],
 };
 const mode = "live";
+let ownerToken = "";
+let importDraft = null,
+  importSending = false;
 let connectedBase = "",
   connectionVersion = 0,
   apiController = new AbortController(),
@@ -315,6 +318,7 @@ async function api(method, path, payload) {
     if (!connectedBase) throw Error("Connect your API first in Connection.");
     const result = await requestPolicy.request(connectedBase + path, {
       group: "byo",
+      headers: ownerToken ? { Authorization: "Bearer " + ownerToken } : {},
       method,
       body,
       signal: apiController.signal,
@@ -1342,6 +1346,9 @@ function disconnect() {
   apiController.abort();
   apiController = new AbortController();
   connectedBase = "";
+  ownerToken = "";
+  $("apiToken").value = "";
+  $("saveImport").disabled = true;
   ++connectionVersion;
   ++feedVersion;
   ++historyVersion;
@@ -1379,8 +1386,16 @@ $("connectForm").onsubmit = async (event) => {
     $("connectionStatus").textContent = error.message;
     return;
   }
+  const token = $("apiToken").value.trim();
+  if (token && !/^[A-Za-z0-9_-]{43,128}$/.test(token)) {
+    $("connectionStatus").textContent =
+      "Enter a valid owner token, or leave it empty for a compatible API without token authentication.";
+    return;
+  }
   disconnect();
+  ownerToken = token;
   connectedBase = base;
+  $("saveImport").disabled = !importDraft;
   store.set("wb-url", base);
   $("apiUrl").value = base;
   $("disconnectBtn").hidden = false;
@@ -1391,6 +1406,9 @@ $("connectForm").onsubmit = async (event) => {
 };
 $("apiUrl").value = store.get("wb-url", "");
 $("apiUrl").oninput = () => {
+  if (connectedBase) disconnect();
+};
+$("apiToken").oninput = () => {
   if (connectedBase) disconnect();
 };
 $("disconnectBtn").onclick = disconnect;
@@ -1451,3 +1469,75 @@ if (!params.has("capture"))
 document
   .querySelectorAll(".sym")
   .forEach((el) => el.setAttribute("aria-hidden", "true"));
+
+// Forecast imports stay in a short-lived, same-tab draft until the user saves.
+const draftId = params.get("import");
+if (draftId && /^[a-f0-9-]{36}$/.test(draftId)) {
+  try {
+    const draft = JSON.parse(sessionStorage.getItem("wb-import-" + draftId));
+    const [payload, error] = validate(JSON.stringify(draft?.payload));
+    if (
+      error ||
+      !payload ||
+      payload.source !== "imported" ||
+      payload.provider !== "Open-Meteo" ||
+      !Number.isFinite(draft.fetchedAt) ||
+      !Number.isFinite(draft.createdAt) ||
+      Date.now() - draft.createdAt > 3600000 ||
+      draft.createdAt > Date.now() + 60000
+    )
+      throw Error("Expired or invalid draft");
+    importDraft = { ...draft, payload };
+    $("importPane").hidden = false;
+    $("importSummary").textContent =
+      `${payload.town} · model time ${new Date(payload.observedAt).toISOString()} · forecast timezone ${draft.timezone} · fetched ${new Date(draft.fetchedAt).toISOString()}${Date.now() - draft.fetchedAt >= 900000 ? " · stale saved forecast" : ""}`;
+    $("importPayload").textContent = JSON.stringify(payload, null, 2);
+    $("importStatus").textContent =
+      "Connect your API to enable Save. Nothing has been sent.";
+  } catch {
+    $("connectionStatus").textContent =
+      "The forecast draft expired or could not be read. Return to Weather to create another.";
+  }
+  history.replaceState(null, "", location.pathname);
+}
+$("cancelImport").onclick = () => {
+  if (importSending) return;
+  importDraft = null;
+  try {
+    sessionStorage.removeItem("wb-import-" + draftId);
+  } catch {}
+  $("importPane").hidden = true;
+};
+$("saveImport").onclick = async () => {
+  if (!connectedBase || !importDraft || importSending) return;
+  importSending = true;
+  $("saveImport").disabled = true;
+  $("cancelImport").disabled = true;
+  const scope = connectionVersion,
+    draft = importDraft;
+  $("importStatus").textContent = "Saving once. No automatic retry…";
+  const [code, result] = await api("POST", "/create-weather", draft.payload);
+  importSending = false;
+  $("cancelImport").disabled = false;
+  if (scope !== connectionVersion) {
+    $("importStatus").textContent =
+      "Connection changed during Save. Check the journal before creating another import.";
+    return;
+  }
+  if (code === 201) {
+    importDraft = null;
+    try {
+      sessionStorage.removeItem("wb-import-" + draftId);
+    } catch {}
+    $("importStatus").textContent =
+      "Forecast saved with Open-Meteo attribution and the original model timestamp.";
+    await refresh();
+  } else {
+    $("importStatus").textContent =
+      (result.message || "Could not save.") +
+      (code === 0
+        ? " The server may have received it. Check your journal before retrying."
+        : " Review the connection before retrying.");
+    $("saveImport").disabled = code === 0 || !connectedBase;
+  }
+};

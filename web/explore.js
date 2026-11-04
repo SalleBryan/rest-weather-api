@@ -11,6 +11,7 @@ const esc = (value) =>
 const storage = {
   getItem: (key) => localStorage.getItem(key),
   setItem: (key, value) => localStorage.setItem(key, value),
+  removeItem: (key) => localStorage.removeItem(key),
 };
 const policy = RequestPolicy.create({ storage, locks: navigator.locks });
 const stored = (key, fallback) => {
@@ -30,6 +31,7 @@ let theme =
   new URLSearchParams(location.search).get("theme") ||
   stored("wb-theme", "system");
 let units = stored("wb-units", "metric") === "imperial" ? "imperial" : "metric";
+const library = PlaceStore.create(storage);
 let weather = null,
   selectedPlace = null,
   receipt = null,
@@ -111,7 +113,7 @@ function render() {
   $("welcome").hidden = true;
   $("weatherContent").hidden = false;
   $("currentWeather").innerHTML =
-    `<div class="current-top"><div><p class="eyebrow">Right here, right now</p><h2 id="placeName" tabindex="-1">${esc(selectedPlace.name)}</h2><p class="place-meta">${esc(region || `${selectedPlace.latitude.toFixed(3)}, ${selectedPlace.longitude.toFixed(3)}`)} · ${esc(local(current.time, { weekday: "short", hour: "numeric", minute: "2-digit" }))}</p></div><button id="refreshWeather" type="button" class="icon-btn" aria-label="Refresh this forecast (uses cache for 15 minutes)"><span class="sym">refresh</span></button></div>
+    `<div class="current-top"><div><p class="eyebrow">Current model estimate</p><h2 id="placeName" tabindex="-1">${esc(selectedPlace.name)}</h2><p class="place-meta">${esc(region || `${selectedPlace.latitude.toFixed(3)}, ${selectedPlace.longitude.toFixed(3)}`)} · ${esc(local(current.time, { weekday: "short", hour: "numeric", minute: "2-digit" }))}</p></div><button id="refreshWeather" type="button" class="icon-btn" aria-label="Refresh this forecast (uses cache for 15 minutes)"><span class="sym">refresh</span></button></div>
     <div class="current-body"><div><div class="temperature" aria-label="${esc(temp(current.temperature_2m))} ${units === "imperial" ? "Fahrenheit" : "Celsius"}">${temp(current.temperature_2m)}</div><p class="condition-label">${esc(condition)}</p><span class="feels">Feels like ${temp(current.apparent_temperature)} · ${units === "imperial" ? "°F" : "°C"}</span></div><div class="weather-art" data-kind="${key}" aria-hidden="true"><span class="sym">${icon}</span></div></div>
     <div class="current-measures"><div><span class="sym">humidity_percentage</span><span><b>${finite(current.relative_humidity_2m) ? number(current.relative_humidity_2m) + "%" : "Unavailable"}</b><small>Humidity</small></span></div><div><span class="sym">air</span><span><b>${wind(current.wind_speed_10m)}</b><small>Wind speed</small></span></div><div><span class="sym">device_thermostat</span><span><b>${temp(weather.daily.temperature_2m_min?.[0])} / ${temp(weather.daily.temperature_2m_max?.[0])}</b><small>Today’s low / high</small></span></div></div><p class="observation-line">${receipt.cached ? "Cached forecast" : "Forecast fetched"} at ${esc(new Date(receipt.fetchedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }))} · ${esc(weather.timezone)} · Model time ${esc(local(current.time, { hour: "2-digit", minute: "2-digit" }))}</p>`;
   $("refreshWeather").onclick = () => loadForecast(selectedPlace);
@@ -164,9 +166,10 @@ function render() {
         weather.daily.weather_code?.[i],
       );
       const hasRange = finite(lows[i]) && finite(highs[i]);
-      return `<div class="day-row"><b>${i === 0 ? "Today" : esc(local(time, { weekday: "short" }))}</b><span class="sym" role="img" aria-label="${esc(label)}">${symbol}</span><span class="range"><span>${temp(lows[i])}</span><span class="range-track" aria-hidden="true">${hasRange ? `<i style="left:${((lows[i] - low) / range) * 100}%;width:${Math.max(((highs[i] - lows[i]) / range) * 100, 3)}%"></i>` : ""}</span></span><b>${temp(highs[i])}</b></div>`;
+      return `<button type="button" class="day-row" data-day="${i}" aria-label="${esc(local(time, { weekday: "long", month: "short", day: "numeric" }))}: ${esc(label)}. Open hourly details"><b>${i === 0 ? "Today" : esc(local(time, { weekday: "short" }))}</b><span class="sym" role="img" aria-label="${esc(label)}">${symbol}</span><span class="range"><span>${temp(lows[i])}</span><span class="range-track" aria-hidden="true">${hasRange ? `<i style="left:${((lows[i] - low) / range) * 100}%;width:${Math.max(((highs[i] - lows[i]) / range) * 100, 3)}%"></i>` : ""}</span></span><b>${temp(highs[i])}</b></button>`;
     })
     .join("");
+  if (typeof refreshLibrary === "function") refreshLibrary();
   decorate();
   // Conditions must remain available when icons are hidden from assistive technology.
   document
@@ -177,6 +180,15 @@ async function loadForecast(place) {
   const version = ++forecastVersion;
   placeSuggestions.close();
   status("Getting the forecast for " + place.name + "…");
+  if (!navigator.onLine) {
+    const saved = library.snapshot(PlaceStore.place(place).id);
+    if (saved) {
+      showSnapshot(saved);
+      status("Offline. Showing a saved forecast.");
+    } else
+      status("No saved forecast for this place. Reconnect to load it.", true);
+    return;
+  }
   $("weatherContent").setAttribute("aria-busy", "true");
   try {
     const result = await policy.request(OpenMeteo.forecastURL(place), {
@@ -190,15 +202,19 @@ async function loadForecast(place) {
       ...OpenMeteo.coordinates(place.latitude, place.longitude),
     };
     receipt = result;
+    selectedPlace = library.save(selectedPlace, data, result.fetchedAt);
     render();
     status("");
     $("placeName").focus({ preventScroll: true });
   } catch (error) {
-    if (version === forecastVersion)
+    if (version === forecastVersion) {
+      const fallback = library.snapshot(PlaceStore.place(place).id);
+      if (fallback) showSnapshot(fallback);
       status(
-        `${error.name === "AbortError" ? "The provider took too long. Try again." : error.message}${weather ? " Still showing " + selectedPlace.name + "." : ""}`,
+        `${error.name === "AbortError" ? "The provider took too long. Try again." : error.message}${fallback ? " Showing the last saved forecast for " + place.name + "." : weather ? " Still showing " + selectedPlace.name + "." : ""}`,
         true,
       );
+    }
   } finally {
     if (version === forecastVersion)
       $("weatherContent").setAttribute("aria-busy", "false");
@@ -319,6 +335,7 @@ document.querySelectorAll("[data-unit]").forEach(
       units = button.dataset.unit;
       save("wb-units", units);
       render();
+      if (typeof renderCollections === "function") renderCollections();
     }),
 );
 $("themeBtn").onclick = () => {

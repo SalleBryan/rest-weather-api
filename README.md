@@ -2,12 +2,14 @@
 
 A serverless **CRUDL REST API** built with **AWS SAM**, **Amazon API Gateway**, **AWS Lambda (Python)** and **Amazon DynamoDB**, from the Educloud Academy course *Building a Serverless Rest Api With AWS SAM and Python*. It comes with a web dashboard, a Postman collection, unit tests and a local mode that needs no AWS account.
 
+[**Open Weather Board on Amplify**](https://main.d3u6uhv5z1v0j6.amplifyapp.com/) · [Research](docs/research/README.md) · [Hosting and security](docs/HOSTING.md)
+
 ![Weather Board architecture: API Gateway routes five endpoints to Python Lambda functions with scoped Read or Write access to DynamoDB.](docs/architecture.png)
 
 [Editable architecture diagram](docs/architecture.html)
 
 ```
-Client ──HTTP──▶ API Gateway (WeatherApi, stage "dev")
+Client ──Bearer token──▶ API Gateway (WeatherApi, stage "dev")
                     ├─ POST   /create-weather  ─▶ CreateWeatherLambda  ──Write──▶ ┐
                     ├─ GET    /weather/{id}    ─▶ GetWeatherLambda     ──Read───▶ │
                     ├─ PUT    /weather/{id}    ─▶ UpdateWeatherLambda  ──Write──▶ ├─ DynamoDB: WeatherTable
@@ -16,7 +18,7 @@ Client ──HTTP──▶ API Gateway (WeatherApi, stage "dev")
                     └─ GET    /locations       ─▶ GetAllWeatherLambda  ──Read───▶ ┘
 ```
 
-The **whole backend** (API, five functions, the table and every permission between them) is declared in one file: [`template.yaml`](template.yaml).
+The **whole backend** (API, five CRUDL handlers, an owner authorizer, the table and their permissions) is declared in one file: [`template.yaml`](template.yaml).
 
 ---
 
@@ -24,7 +26,7 @@ The **whole backend** (API, five functions, the table and every permission betwe
 
 | Path | What it is |
 | --- | --- |
-| `template.yaml` | The SAM template: Globals, the API, the table, five functions and their **Connectors** (permissions) |
+| `template.yaml` | The SAM template: Globals, the API, the table, five handlers, owner authorization and **Connectors** (permissions) |
 | `src/` | One small Python handler per endpoint, plus `api_response.py` (shared response + validation helpers) |
 | `web/index.html` | **Explore weather**: worldwide Open-Meteo forecasts, no key or billing setup. Material 3 Expressive design. Research and decisions: [`docs/DESIGN.md`](docs/DESIGN.md) |
 | `web/workspace.html` | **Your API**: explicitly connect your own compatible Weather Board deployment for saved readings, location search, history, and request inspection |
@@ -34,7 +36,7 @@ The **whole backend** (API, five functions, the table and every permission betwe
 | `scripts/smoke_test.py` | Runs the full CRUDL cycle against any deployed URL and prints PASS/FAIL per request |
 | `scripts/local_api.py` | Runs the real handlers on `http://localhost:3000/dev` with an in-memory DynamoDB (no AWS, no Docker) |
 | `events/` | Sample API Gateway events for `sam local invoke` |
-| `tests/` | 54 Python tests (pytest + moto) and 11 dependency-free JavaScript tests |
+| `tests/` | 61 Python tests (pytest + moto) and 17 dependency-free JavaScript tests |
 
 ---
 
@@ -138,7 +140,7 @@ The free hosted service is for non-commercial use; commercial use requires an ap
 | Explicit connection | A saved URL only prefills the Your API form. Connect is required after every page load. Editing it disconnects. HTTPS is required except loopback; URL credentials/query strings/fragments are rejected. Cookies and HTTP redirects are omitted. |
 | Disconnect | Stops new API requests, aborts pending requests, clears displayed readings, and closes the reading editor. Aborting cannot undo a request already processed by the server. |
 
-**Limits:** clearing storage, using another browser/origin, unsupported cross-tab locking, or editing the code can bypass client controls. Browser fetch counters exclude automatic CORS preflights. They cannot enforce a shared visitor quota or a hard spending cap on your provider account. Open-Meteo's free endpoint has no billing setup to charge; the BYO API may incur its provider's charges. Protect a public deployment with authentication and provider-side quotas/billing controls before broader use. The existing AWS throttle is retained, with its limitations described below. The default Explore view never accesses that deployment.
+**Limits:** clearing storage, using another browser/origin, unsupported cross-tab locking, or editing the code can bypass client controls. Browser fetch counters exclude automatic CORS preflights. They cannot enforce a shared visitor quota or a hard spending cap on your provider account. Open-Meteo's free endpoint has no billing setup to charge; the BYO API may incur its provider's charges. The hosted journal API uses owner authorization plus a stricter AWS throttle, with limitations described below. The default Explore view never accesses that deployment.
 
 ![Worldwide forecast from Open-Meteo](docs/dashboard-weather-worldwide.png)
 
@@ -181,7 +183,7 @@ You need [uv](https://docs.astral.sh/uv/) (it installs the right Python for you)
 
 ```powershell
 uv sync                                  # install test/dev tools into .venv
-uv run pytest                            # 54 tests against a mocked DynamoDB
+uv run pytest                            # handler and owner-authorization tests; mocked DynamoDB
 uv run python scripts/local_api.py       # API on http://localhost:3000/dev
 ```
 
@@ -206,7 +208,7 @@ uv run python scripts/smoke_test.py http://localhost:3000/dev
 ```powershell
 sam validate --lint
 sam build
-sam deploy --guided
+sam deploy --guided --parameter-overrides OwnerTokenSha256=<sha256-of-your-random-owner-token>
 ```
 
 Answers for the guided prompts:
@@ -217,23 +219,19 @@ Answers for the guided prompts:
 | AWS Region | your region, e.g. `us-east-2` or `eu-west-1` |
 | Confirm changes before deploy | `y` |
 | Allow SAM CLI IAM role creation | `Y` (SAM creates the least-privilege roles from the Connectors) |
-| *Function* may not have authorization defined, is this okay? | `y` for each (this is a public learning API) |
+| OwnerTokenSha256 | SHA256 digest of a private random token with at least 256 bits of entropy. See [hosting/security](docs/HOSTING.md). |
 | Save arguments to configuration file | `Y` (next time, just `sam deploy`) |
 
 Copy **`WeatherApiUrl`** from the Outputs, then test it any of three ways:
 
-1. **Postman:** import `postman/rest-weather-api.postman_collection.json`, set the `baseUrl` variable (no trailing slash), run the collection.
-2. **Smoke test:** `uv run python scripts/smoke_test.py <WeatherApiUrl>`
-3. **Dashboard:** serve `web/`, open **Your API**, paste the URL, and press **Connect**.
+1. **Postman:** import `postman/rest-weather-api.postman_collection.json`, set the `baseUrl` variable (no trailing slash) and `ownerToken` privately, then run the collection.
+2. **Smoke test:** set `WEATHER_API_TOKEN` privately in the process environment, then run `uv run python scripts/smoke_test.py <WeatherApiUrl>`.
+3. **Dashboard:** serve `web/`, open **Your API**, paste the URL and owner token, and press **Connect**.
 
 ### Throttling
-The API has no login. Its `dev` stage uses a **5 requests/second throttle with a burst of 5** (`MethodSettings` on `WeatherApi`). API Gateway may reject traffic with 429 before Lambda, but these are best-effort limits. They reduce sustained load; they do not cap total spending or prevent unauthorized use.
+The deployed API now requires a single-owner bearer token on every CRUDL route. A cached Lambda authorizer checks a SHA256 digest using constant-time comparison; missing/incorrect tokens are denied. CORS preflights remain public. This is a personal journal credential, not a multi-user account system. Tokens are never embedded in the hosted frontend, saved in browser storage, or logged with request events.
 
-Two things I learned testing this on the live API:
-- **API Gateway throttling is best-effort.** It reliably limits *sustained* traffic, but a sharp burst (40 requests in 2 seconds) still let most requests through before the limit kicked in.
-- **New AWS accounts can run only 10 Lambda functions at the same time**, across the whole region and shared by every app in the account. Requests beyond that are rejected by Lambda, and API Gateway reports them as `500` errors. A big burst here can briefly throttle your *other* apps too.
-
-The fix for the second one is free: in the AWS console, open **Service Quotas → AWS Lambda → Concurrent executions** and request an increase (e.g. to 1000). Check your current limit with `aws lambda get-account-settings`.
+Its `dev` stage uses a **1 request/second throttle with a burst of 3**. API Gateway limits are best-effort; requests rejected before Lambda can still incur Gateway charges. The browser independently allows 10 requests per minute and 100 per UTC day for BYO traffic. [Hosting and cost controls](docs/HOSTING.md) explain the US$3 alert threshold and practical limits.
 
 ### Clean up when you're done
 ```powershell
@@ -247,8 +245,8 @@ This removes everything the template created, including the table and its data.
 
 ## How a request flows (the bit that made it click for me)
 
-1. Postman sends `PUT /weather/abc-123` with a JSON body.
-2. **API Gateway** matches the method + path to `UpdateWeatherLambda` and wraps the HTTP request into an `event`: the body becomes a JSON *string* in `event['body']`, and `abc-123` lands in `event['pathParameters']['id']`.
+1. Postman sends `PUT /weather/abc-123` with a JSON body and an owner bearer token.
+2. **API Gateway** checks the owner authorizer, then matches the method + path to `UpdateWeatherLambda` and wraps the HTTP request into an `event`: the body becomes a JSON *string* in `event['body']`, and `abc-123` lands in `event['pathParameters']['id']`.
 3. **Lambda** runs `update_weather.lambda_handler(event, context)`. The `TABLE_NAME` environment variable comes from `Globals` in the template (`!Ref WeatherTable`).
 4. The handler calls **DynamoDB** `update_item`. It's allowed to because the template's **Connector** gave this function *Write* access to *this table only*.
 5. The handler returns `{'statusCode': 200, 'headers': ..., 'body': '...'}` and API Gateway turns that back into an HTTP response.
@@ -277,7 +275,22 @@ What I **kept** from the course on purpose: the same routes, the same file names
 ---
 
 ## Ideas for next steps
-- Add an API key or Cognito authorizer so the API isn't public.
+- Replace the single-owner token with per-user identity and ownership if the journal becomes a multi-user product.
 - Use Lambda Powertools for structured logging and tracing.
-- Add a GitHub Actions workflow that runs `pytest` and `sam deploy` on push.
-- Add authenticated ownership and provider-side quotas for public use.
+- Add optional test-only CI; hosted production deployments intentionally remain manual to control build cost.
+- Evaluate stricter provider quotas and cost telemetry before increasing traffic.
+
+## November 2026 platform release
+
+**Hosted frontend:** [Weather Board on Amplify](https://main.d3u6uhv5z1v0j6.amplifyapp.com/).
+
+The [research registry](docs/research/README.md) reviews 169 distinct platforms/interfaces, with ten closer visual page reviews. It distinguishes source evidence from hands-on testing. The resulting additions preserve the existing Material 3 Expressive design language:
+
+- **Places:** up to 12 favorites and eight recent places, with saved forecast age, explicit removal, and clear-local-data controls. All lists are local to the browser.
+- **Daily detail:** choose any of seven days for an adaptive modal sheet with hourly temperature and rain probability, semantic table, keyboard dismissal, timezone, and original fetch time. No extra provider request.
+- **Offline:** an installable app shell and eight bounded forecast snapshots. Startup restores the last snapshot without requesting data. Forecasts older than 15 minutes are labeled stale; refresh is explicit. The service worker caches only static assets, never journal API responses or tokens.
+- **Compare:** up to three places, common units, per-place timezone/fetch time, hourly comparisons aligned by UTC, exact values in a table, and explicit cached refresh. Missing values break chart lines.
+- **Forecast import:** create a short-lived draft from Weather, connect Your API, inspect the payload and model timestamp, then save once. It retains imported source, Open-Meteo provider, coordinates, temperature/humidity/wind, and original model time in `observedAt`. Imports are model estimates, not station observations. No automatic POST retries.
+- **Navigation and security:** Weather, Places, Compare, and Your API share adaptive navigation and tonal roles. Self-hosted fonts, reduced motion, accessible native dialogs, strict hosted headers, owner authorization, and no production auto-build/preview pipeline.
+
+Serve `web/` on localhost or HTTPS. The service worker updates after old app tabs close; close/reopen existing tabs after deploying an update. [Hosting instructions and cost notes](docs/HOSTING.md) cover manual deployment and the private owner credential.
