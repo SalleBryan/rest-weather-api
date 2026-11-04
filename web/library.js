@@ -34,7 +34,7 @@ async function locateWeather({ automatic = false } = {}) {
   $("locationBtn").disabled = true;
   $("locationBtn").setAttribute("aria-busy", "true");
   note.textContent =
-    "Finding your location… Allow location access when your browser asks. Only approximate coordinates are sent to Open-Meteo.";
+    "Finding your location… Approximate coordinates go to Open-Meteo for weather and BigDataCloud for the place name, after browser permission.";
   const finish = () => {
     if (version === locationVersion) {
       locationBusy = false;
@@ -67,14 +67,47 @@ async function locateWeather({ automatic = false } = {}) {
             Number(position.coords.latitude.toFixed(2)),
             Number(position.coords.longitude.toFixed(2)),
           );
-          note.textContent = "Location found. Loading weather near you…";
-          const loaded = await loadForecast(
-            { ...point, name: "Current location" },
-            { automatic, located: true },
-          );
+          const saved = library.snapshot(
+            PlaceStore.place({ ...point, name: "Nearby weather" }).id,
+          )?.place;
+          const place = {
+            ...point,
+            name:
+              saved?.name && saved.name !== "Current location"
+                ? saved.name
+                : "Nearby weather",
+            admin1: saved?.admin1,
+            country: saved?.country,
+            deviceLocation: true,
+          };
+          note.textContent =
+            "Location found. Loading your forecast and place name…";
+          // Start weather first; name service failures must not block the forecast.
+          const forecastTask = loadForecast(place, {
+            automatic,
+            located: true,
+          });
+          let named = null;
+          const nameTask = policy
+            .request(LocationNames.url(point), { ttl: 86400000 })
+            .then((result) => {
+              if (version !== locationVersion) return;
+              named = LocationNames.parse(result.data, point);
+              if (named) Object.assign(place, named);
+            })
+            .catch(() => {});
+          const loaded = await forecastTask;
+          await nameTask;
+          if (version === locationVersion && loaded && named) {
+            selectedPlace = library.save(named, weather, receipt.fetchedAt);
+            render();
+          }
           if (version === locationVersion)
             note.textContent = loaded
-              ? "Using approximate device coordinates. Forecasts cache for 15 minutes; location is checked once per page load, with no continuous tracking. Saved location data can be cleared in Places."
+              ? (named
+                  ? "Showing weather for " + named.name + ". "
+                  : "Place-name lookup unavailable; showing weather at your device coordinates. ") +
+                "Location is checked once per page load, with no continuous tracking. Saved location data can be cleared in Places."
               : "Location found, but its forecast could not be loaded. See the message below; you can still search or open a saved place.";
         } catch {
           if (version === locationVersion)

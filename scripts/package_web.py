@@ -3,7 +3,7 @@ import argparse
 from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
 
-FILES = 'index.html workspace.html platform.css explore.css library.css workspace-base.css workspace.css palettes.js request-policy.js open-meteo.js typeahead.js place-store.js explore.js library.js workspace.js history.js register-sw.js sw.js manifest.webmanifest icon.svg icon-192.png icon-512.png customHttp.yml'.split()
+FILES = 'index.html workspace.html platform.css explore.css library.css workspace-base.css workspace.css palettes.js request-policy.js open-meteo.js location-names.js typeahead.js place-store.js explore.js library.js workspace.js history.js register-sw.js sw.js manifest.webmanifest icon.svg icon-192.png icon-512.png customHttp.yml'.split()
 
 
 def main():

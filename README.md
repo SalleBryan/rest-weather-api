@@ -36,7 +36,7 @@ The **whole backend** (API, five CRUDL handlers, an owner authorizer, the table 
 | `scripts/smoke_test.py` | Runs the full CRUDL cycle against any deployed URL and prints PASS/FAIL per request |
 | `scripts/local_api.py` | Runs the real handlers on `http://localhost:3000/dev` with an in-memory DynamoDB (no AWS, no Docker) |
 | `events/` | Sample API Gateway events for `sam local invoke` |
-| `tests/` | 61 Python tests (pytest + moto) and 17 dependency-free JavaScript tests |
+| `tests/` | 61 Python tests (pytest + moto) and 21 dependency-free JavaScript tests |
 
 ---
 
@@ -298,6 +298,6 @@ Serve `web/` on localhost or HTTPS. The service worker updates after old app tab
 
 ### Current location on startup
 
-Opening Weather now asks the browser for location permission, then loads the forecast near the device automatically. Previously authorized browsers can do this without another prompt. A fresh device position is requested once per Weather page load with an eight-second timeout and high-accuracy GPS disabled; there is no continuous tracking. Coordinates are rounded to two decimals before sending them to Open-Meteo or saving them locally. No IP-location service or paid API was added. The normal request allowance and 15-minute forecast cache still apply.
+Opening Weather now asks the browser for location permission, then loads the forecast near the device automatically. Previously authorized browsers can do this without another prompt. A fresh device position is requested once per Weather page load with an eight-second timeout and high-accuracy GPS disabled; there is no continuous tracking. Coordinates are rounded to two decimals before sending them to Open-Meteo or saving them locally. No IP-based location fallback or paid API was added. BigDataCloud resolves the detected city or town through its free browser endpoint, with names cached for 24 hours under the shared request allowance. The normal request allowance and 15-minute forecast cache still apply.
 
-The Use my current location action checks again explicitly. Manual search or selecting another place cancels the pending location result so it cannot replace your selection. Denied, unsupported, unavailable, and timed-out location requests leave search and saved weather available. Offline forecasts from a previous device position are labeled Last known location. Deep links to Places or Compare do not request the device's location. Clear local weather in Places removes these saved snapshots and coordinates.
+The Use my current location action checks again explicitly. Manual search or selecting another place cancels the pending location result so it cannot replace your selection. Denied, unsupported, unavailable, and timed-out location requests leave search and saved weather available. Offline forecasts retain their city/town name and carry a Last known location label. Deep links to Places or Compare do not request the device's location. Clear local weather in Places removes these saved snapshots and coordinates.

@@ -144,8 +144,9 @@
               </button>
               <p id="locationNote" class="small muted" role="status">
                 Your browser will ask for location access. Approximate
-                coordinates go to Open-Meteo for your forecast and are cached in
-                this browser. You can search instead.
+                coordinates go to Open-Meteo for weather and BigDataCloud for
+                place names, and are cached in this browser. You can search
+                instead.
               </p>
             </div>
           </section>
@@ -350,7 +351,13 @@
               rel="noopener"
               >CC BY 4.0</a
             >. Rounded values; °F and mph are converted locally. Current
-            conditions are weather model estimates.
+            conditions are weather model estimates. Place names by
+            <a
+              href="https://www.bigdatacloud.com/docs/article/why-is-reverse-geocoding-api-free"
+              target="_blank"
+              rel="noopener"
+              >BigDataCloud</a
+            >, which uses location/IP pairings to improve its geolocation data.
           </p>
           <a href="workspace.html"
             >Bring your own API<span class="sym">arrow_forward</span></a
@@ -415,6 +422,7 @@
     <script src="place-store.js"></script>
     <script src="typeahead.js"></script>
     <script src="explore.js"></script>
+    <script src="location-names.js"></script>
     <script src="library.js"></script>
     <script src="register-sw.js"></script>
   </body>

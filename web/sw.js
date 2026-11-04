@@ -1,6 +1,6 @@
 /* Cache only the published app shell. API responses and tokens never enter here. */
 "use strict";
-const VERSION = "weather-board-2026-11-04-4";
+const VERSION = "weather-board-2026-11-04-5";
 const ASSETS = [
   "./",
   "index.html",
@@ -13,6 +13,7 @@ const ASSETS = [
   "palettes.js",
   "request-policy.js",
   "open-meteo.js",
+  "location-names.js",
   "typeahead.js",
   "place-store.js",
   "explore.js",

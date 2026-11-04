@@ -21,6 +21,8 @@
     };
     for (const key of ["admin1", "country"])
       if (typeof raw[key] === "string") clean[key] = raw[key].slice(0, 120);
+    if (raw.deviceLocation === true || raw.name === "Current location")
+      clean.deviceLocation = true;
     clean.id = clean.latitude.toFixed(4) + "," + clean.longitude.toFixed(4);
     return clean;
   }

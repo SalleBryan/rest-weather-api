@@ -43,3 +43,11 @@ Requested 4 November 2026 by SalleBryan. Monthly AWS alert threshold: **US$3**, 
 - Added denied/unavailable/timeout/offline fallbacks and cancellation when the user searches, selects a different place, navigates away, or clears local weather. Saved device-position snapshots are labeled Last known location until a fresh lookup succeeds.
 - Browser checks passed for permission grant, coordinate rounding, cache reuse, changed device position, offline restore, denial/unavailability/timeout, manual-selection races, and deep-link isolation. Existing 17 JavaScript tests and the broader release browser regression passed.
 - Amplify release 4 succeeded. Verified HTTPS 200 responses and geolocation=(self) on Weather, with geolocation still disabled on Your API. Published archive matches the current runtime assets.
+
++
++## Device place-name follow-up, 4 November 2026
++
++- Added city/town naming for a fresh device position via BigDataCloud's free browser endpoint, with 24-hour caching, the existing request budget, explicit attribution/privacy copy, and an exact CSP host allowlist entry.
++- Device identity is stored separately from the display name; Refresh continues to locate the device. Saved/offline forecasts keep their names and a last-known label. Weather loads independently of name-service availability; canceled results cannot replace a manual selection.
++- Verified 21 JavaScript tests plus browser checks for named locations, region/country, cache reuse, changed device position after naming, offline labels, name-provider failure, delayed-result cancellation, and denied permission. Provider calls in browser tests use deterministic fixtures.
++- Amplify release 5 succeeded. Verified the hosted name-lookup module, updated service-worker version, exact provider CSP origin, and matching deployment archive. Broader release browser regression passed.
