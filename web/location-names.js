@@ -39,7 +39,32 @@
         }
       : null;
   }
-  const api = { url, parse };
+  function nearestCity(point, cities) {
+    const radians = Math.PI / 180;
+    const latitude = point.latitude * radians;
+    // Compare haversine values directly to a 15 km distance.
+    let closest = Math.sin(15 / (2 * 6371)) ** 2;
+    let match = null;
+    for (const [name, cityLat, cityLon, country] of cities) {
+      const distance =
+        Math.sin((cityLat * radians - latitude) / 2) ** 2 +
+        Math.cos(latitude) * Math.cos(cityLat * radians) *
+          Math.sin(((cityLon - point.longitude) * radians) / 2) ** 2;
+      if (distance <= closest) {
+        closest = distance;
+        match = { name, country };
+      }
+    }
+    if (!match) return null;
+    const countryNames = Intl.DisplayNames && new Intl.DisplayNames("en", { type: "region" });
+    return {
+      ...point,
+      name: "Near " + match.name,
+      country: countryNames ? countryNames.of(match.country) : match.country,
+      deviceLocation: true,
+    };
+  }
+  const api = { url, parse, nearestCity };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.LocationNames = api;
 })(typeof globalThis === "undefined" ? this : globalThis);

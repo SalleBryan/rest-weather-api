@@ -67,9 +67,8 @@ async function locateWeather({ automatic = false } = {}) {
             Number(position.coords.latitude.toFixed(2)),
             Number(position.coords.longitude.toFixed(2)),
           );
-          const saved = library.snapshot(
-            PlaceStore.place({ ...point, name: "Nearby weather" }).id,
-          )?.place;
+          const placeId = PlaceStore.place({ ...point, name: "Nearby weather" }).id;
+          const saved = library.snapshot(placeId)?.place;
           const place = {
             ...point,
             name:
@@ -87,25 +86,32 @@ async function locateWeather({ automatic = false } = {}) {
             automatic,
             located: true,
           });
-          let named = null;
           const nameTask = policy
             .request(LocationNames.url(point), { ttl: 86400000 })
-            .then((result) => {
-              if (version !== locationVersion) return;
-              named = LocationNames.parse(result.data, point);
-              if (named) Object.assign(place, named);
+            .then((result) => LocationNames.parse(result.data, point))
+            .catch(() => null)
+            .then(async (resolved) => {
+              if (version !== locationVersion) return null;
+              if (!resolved) {
+                // Every location fetches the same file. Coordinates stay in the browser.
+                const index = await fetch("city-index.json", { signal: AbortSignal.timeout(8000) });
+                if (index.ok) resolved = LocationNames.nearestCity(point, await index.json());
+              }
+              if (version !== locationVersion) return null;
+              if (resolved) Object.assign(place, resolved);
+              return resolved;
             })
-            .catch(() => {});
+            .catch(() => null);
           const loaded = await forecastTask;
-          await nameTask;
-          if (version === locationVersion && loaded && named) {
+          const named = await nameTask;
+          if (version === locationVersion && named && selectedPlace?.id === placeId) {
             selectedPlace = library.save(named, weather, receipt.fetchedAt);
             render();
           }
           if (version === locationVersion)
             note.textContent = loaded
               ? (named
-                  ? "Showing weather for " + named.name + ". "
+                  ? "Forecast location: " + named.name + ". "
                   : "Place-name lookup unavailable; showing weather at your device coordinates. ") +
                 "Location is checked once per page load, with no continuous tracking. Saved location data can be cleared in Places."
               : "Location found, but its forecast could not be loaded. See the message below; you can still search or open a saved place.";

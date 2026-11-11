@@ -47,10 +47,10 @@ Weather requests a fresh browser device position once on startup (eight-second t
 
 Permissions-Policy allows geolocation only for this site's origin; Your API keeps geolocation disabled. Other restricted device permissions remain disabled. The [browser API](https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/getCurrentPosition) requires a secure context and user permission, and the [geolocation policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Permissions-Policy/geolocation) must allow the feature. The former geolocation=() policy is replaced for Weather, including the app-level Amplify headers and the manual deployment file. No changes to cost alerts, API authorization, or auto-build settings are needed.
 
-+
-+### Device place names
-+
-+After a fresh permitted device fix, the browser sends the same rounded coordinates directly to BigDataCloud's free client endpoint. It prefers the returned city, falls back to locality for villages, and retains region/country alongside the name. A separate device-location flag keeps Refresh checking the actual device position even after the title changes. Names persist in bounded Places snapshots and remain visible offline with a last-known indicator. Manual searches, comparison refreshes, saved locations, and denied device permissions never cause reverse requests. The service is not called through Lambda or from stored/third-party coordinates.
-+
-+The [client API](https://www.bigdatacloud.com/docs/free-api/free-reverse-geocode-to-city-api) needs no key or billing account. Its [fair-use policy](https://www.bigdatacloud.com/docs/article/fair-use-policy-for-free-client-side-reverse-geocoding-api) limits calls to the current device's permitted location from that device. BigDataCloud says it uses anonymous location/IP pairings to improve its data; this is disclosed beside the location controls and in provider attribution. No street address, postcode, or IP address is copied into Places. Responses marked as IP-derived or with mismatched coordinates are rejected. If naming fails, the forecast still loads and the UI explains the missing name without guessing a city.
-+
+### Device place names
+
+After the browser obtains a fresh device position with permission, it sends the rounded coordinates directly to BigDataCloud. The app uses the returned city or locality and keeps the region and country alongside the name. Names persist in the Places snapshots and remain visible offline with a last-known indicator. The Refresh button checks the device position again.
+
+The [client API](https://www.bigdatacloud.com/docs/free-api/free-reverse-geocode-to-city-api) uses the device's current permitted location. BigDataCloud uses anonymous location and IP pairings to improve its data. The app rejects IP-derived results and results with mismatched coordinates.
+
+If the provider returns no usable name, the browser checks a city index served with the app. If a listed city is within 15 km, the app labels the location “Near [city]”. The comparison runs locally in the browser and the forecast continues to use the device coordinates. The index is adapted from [GeoNames cities15000](https://download.geonames.org/export/dump/readme.txt) under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Each row contains the city name, coordinates rounded to four decimal places, and the country code.

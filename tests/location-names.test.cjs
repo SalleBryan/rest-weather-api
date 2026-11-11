@@ -47,3 +47,12 @@ test("reverse requests use one fixed free origin with explicit coordinates, incl
   assert.equal(u.searchParams.has("key"), false);
   assert.throws(() => Names.url({ latitude: 91, longitude: 0 }), /Invalid/);
 });
+
+test("the city index names a nearby place without changing the forecast coordinates", () => {
+  const cities = require("../web/city-index.json");
+  const point = { latitude: 4.05, longitude: 9.70 };
+  assert.deepEqual(Names.nearestCity(point, cities), {
+    ...point, name: "Near Douala", country: "Cameroon", deviceLocation: true,
+  });
+  assert.equal(Names.nearestCity({ latitude: 0, longitude: 0 }, cities), null);
+});
