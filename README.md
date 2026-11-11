@@ -20,6 +20,8 @@ Client ──Bearer token──▶ API Gateway (WeatherApi, stage "dev")
 
 The **whole backend** (API, five CRUDL handlers, an owner authorizer, the table and their permissions) is declared in one file: [`template.yaml`](template.yaml).
 
+The [CI/CD workshop setup](pipeline/README.md) uses GitHub and AWS CodePipeline to test this backend, deploy a separate Dev API, run the CRUDL smoke test, and wait for approval before deploying Prod.
+
 ---
 
 ## What's in here

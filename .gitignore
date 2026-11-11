@@ -4,3 +4,7 @@ __pycache__/
 .pytest_cache/
 samconfig.toml
 *.pyc
+/pipeline/node_modules/
+/pipeline/dist/
+/pipeline/.build/
+/pipeline/cdk.out/
